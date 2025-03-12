@@ -37,21 +37,24 @@ export default function ScheduleDuration() {
 
   return (
     <div className="bg-gray-100 min-h-screen p-5">
+      {/* Header */}
       <header className="flex justify-between items-center bg-gray-800 text-white p-5 rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold">Schedule & Duration</h1>
+        <h1 className="text-2xl font-bold text-white">Schedule & Duration</h1>
         <CalendarCheck size={32} />
       </header>
       
+      {/* Search Input */}
       <input
         type="text"
         placeholder="Search by client name..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        className="w-full p-2 border border-gray-300 rounded my-4"
+        className="w-full p-3 border border-gray-400 rounded my-4 text-black shadow-sm"
       />
 
+      {/* Schedules Table */}
       <div className="bg-white p-5 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold mb-3">Scheduled Advertisements</h3>
+        <h3 className="text-lg font-semibold text-black mb-3">Scheduled Advertisements</h3>
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-blue-500 text-white">
@@ -65,32 +68,75 @@ export default function ScheduleDuration() {
           <tbody>
             {filteredSchedules.length > 0 ? (
               filteredSchedules.map((schedule) => (
-                <tr key={schedule.id} className="border-b hover:bg-gray-100 cursor-pointer" onClick={() => handleRowClick(schedule)}>
-                  <td className="p-3">{schedule.client}</td>
-                  <td className="p-3">{schedule.file}</td>
-                  <td className="p-3">{schedule.location}</td>
-                  <td className="p-3">{schedule.date}</td>
-                  <td className="p-3">{schedule.duration}</td>
+                <tr key={schedule.id} className="border-b hover:bg-gray-100 cursor-pointer">
+                  <td className="p-3 text-black" onClick={() => handleRowClick(schedule)}>{schedule.client}</td>
+                  <td className="p-3 text-black" onClick={() => handleRowClick(schedule)}>{schedule.file}</td>
+                  <td className="p-3 text-black" onClick={() => handleRowClick(schedule)}>{schedule.location}</td>
+                  <td className="p-3 text-black" onClick={() => handleRowClick(schedule)}>{schedule.date}</td>
+                  <td className="p-3 text-black" onClick={() => handleRowClick(schedule)}>{schedule.duration}</td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="5" className="text-center font-bold p-4">No schedules match your search.</td>
+                <td colSpan="5" className="text-center font-bold p-4 text-black">No schedules match your search.</td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
 
+      {/* Edit Section - Appears when a schedule is selected */}
       {selectedSchedule && (
         <div className="bg-white p-5 rounded-lg shadow-md mt-5">
-          <h3 className="text-lg font-semibold">Edit Schedule Duration</h3>
-          <input type="text" value={selectedSchedule.client} readOnly className="w-full p-2 border border-gray-300 rounded mt-2 bg-gray-200" />
-          <input type="text" value={selectedSchedule.file} readOnly className="w-full p-2 border border-gray-300 rounded mt-2 bg-gray-200" />
-          <input type="text" value={selectedSchedule.location} readOnly className="w-full p-2 border border-gray-300 rounded mt-2 bg-gray-200" />
-          <input type="text" value={selectedSchedule.date} readOnly className="w-full p-2 border border-gray-300 rounded mt-2 bg-gray-200" />
-          <input type="text" placeholder="New Duration (e.g., 10 days)" value={newDuration} onChange={(e) => setNewDuration(e.target.value)} className="w-full p-2 border border-gray-300 rounded mt-2" />
-          <button onClick={handleUpdateDuration} className="mt-2 w-full bg-green-600 text-white p-2 rounded hover:bg-green-700">Update Duration</button>
+          <h3 className="text-lg font-semibold text-black">Edit Schedule Duration</h3>
+
+          <label className="block text-black font-medium mt-3">Client Name</label>
+          <input 
+            type="text" 
+            value={selectedSchedule.client} 
+            readOnly 
+            className="w-full p-3 border border-gray-400 rounded mt-2 bg-gray-100 text-black"
+          />
+
+          <label className="block text-black font-medium mt-3">File Name</label>
+          <input 
+            type="text" 
+            value={selectedSchedule.file} 
+            readOnly 
+            className="w-full p-3 border border-gray-400 rounded mt-2 bg-gray-100 text-black"
+          />
+
+          <label className="block text-black font-medium mt-3">Location</label>
+          <input 
+            type="text" 
+            value={selectedSchedule.location} 
+            readOnly 
+            className="w-full p-3 border border-gray-400 rounded mt-2 bg-gray-100 text-black"
+          />
+
+          <label className="block text-black font-medium mt-3">Scheduled Date</label>
+          <input 
+            type="text" 
+            value={selectedSchedule.date} 
+            readOnly 
+            className="w-full p-3 border border-gray-400 rounded mt-2 bg-gray-100 text-black"
+          />
+
+          <label className="block text-black font-medium mt-3">New Duration</label>
+          <input 
+            type="text" 
+            placeholder="New Duration (e.g., 10 days)" 
+            value={newDuration} 
+            onChange={(e) => setNewDuration(e.target.value)} 
+            className="w-full p-3 border border-gray-400 rounded mt-2 text-black bg-white"
+          />
+
+          <button 
+            onClick={handleUpdateDuration} 
+            className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition cursor-pointer w-full"
+          >
+            Update Duration
+          </button>
         </div>
       )}
     </div>

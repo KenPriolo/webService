@@ -22,21 +22,24 @@ export default function CTRConversions() {
 
   return (
     <div className="bg-gray-100 min-h-screen p-5">
+      {/* Header */}
       <header className="flex justify-between items-center bg-gray-800 text-white p-5 rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold">CTR & Conversions</h1>
+        <h1 className="text-2xl font-bold text-white">CTR & Conversions</h1>
         <TrendingUp size={32} />
       </header>
       
+      {/* Search Input */}
       <input
         type="text"
         placeholder="Search by client name..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        className="w-full p-2 border border-gray-300 rounded my-4"
+        className="w-full p-3 border border-gray-400 rounded my-4 text-black shadow-sm"
       />
 
+      {/* CTR Table */}
       <div className="bg-white p-5 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold mb-3">CTR & Conversions Data</h3>
+        <h3 className="text-lg font-semibold text-black mb-3">CTR & Conversions Data</h3>
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-blue-500 text-white">
@@ -52,32 +55,45 @@ export default function CTRConversions() {
             {filteredData.length > 0 ? (
               filteredData.map((data, index) => (
                 <tr key={index} className="border-b hover:bg-gray-100 cursor-pointer" onClick={() => handleRowClick(data)}>
-                  <td className="p-3">{data.client}</td>
-                  <td className="p-3">{data.file}</td>
-                  <td className="p-3">{data.views}</td>
-                  <td className="p-3">{data.clicks}</td>
-                  <td className="p-3">{data.ctr}</td>
-                  <td className="p-3">{data.conversions}</td>
+                  <td className="p-3 text-black">{data.client}</td>
+                  <td className="p-3 text-black">{data.file}</td>
+                  <td className="p-3 text-black">{data.views}</td>
+                  <td className="p-3 text-black">{data.clicks}</td>
+                  <td className="p-3 text-black">{data.ctr}</td>
+                  <td className="p-3 text-black">{data.conversions}</td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="text-center font-bold p-4">No data matches your search.</td>
+                <td colSpan="6" className="text-center font-bold p-4 text-black">No data matches your search.</td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
 
+      {/* CTR Details - Appears when a row is clicked */}
       {selectedCTR && (
         <div className="bg-white p-5 rounded-lg shadow-md mt-5">
-          <h3 className="text-lg font-semibold">CTR & Conversions Details</h3>
-          <input type="text" value={selectedCTR.client} readOnly className="w-full p-2 border border-gray-300 rounded mt-2 bg-gray-200" />
-          <input type="text" value={selectedCTR.file} readOnly className="w-full p-2 border border-gray-300 rounded mt-2 bg-gray-200" />
-          <input type="text" value={selectedCTR.views} readOnly className="w-full p-2 border border-gray-300 rounded mt-2 bg-gray-200" />
-          <input type="text" value={selectedCTR.clicks} readOnly className="w-full p-2 border border-gray-300 rounded mt-2 bg-gray-200" />
-          <input type="text" value={selectedCTR.ctr} readOnly className="w-full p-2 border border-gray-300 rounded mt-2 bg-gray-200" />
-          <input type="text" value={selectedCTR.conversions} readOnly className="w-full p-2 border border-gray-300 rounded mt-2 bg-gray-200" />
+          <h3 className="text-lg font-semibold text-black">CTR & Conversions Details</h3>
+
+          <label className="block text-black font-medium mt-3">Client Name</label>
+          <input type="text" value={selectedCTR.client} readOnly className="w-full p-3 border border-gray-400 rounded mt-2 bg-gray-100 text-black" />
+
+          <label className="block text-black font-medium mt-3">File Name</label>
+          <input type="text" value={selectedCTR.file} readOnly className="w-full p-3 border border-gray-400 rounded mt-2 bg-gray-100 text-black" />
+
+          <label className="block text-black font-medium mt-3">Views</label>
+          <input type="text" value={selectedCTR.views} readOnly className="w-full p-3 border border-gray-400 rounded mt-2 bg-gray-100 text-black" />
+
+          <label className="block text-black font-medium mt-3">Clicks</label>
+          <input type="text" value={selectedCTR.clicks} readOnly className="w-full p-3 border border-gray-400 rounded mt-2 bg-gray-100 text-black" />
+
+          <label className="block text-black font-medium mt-3">CTR</label>
+          <input type="text" value={selectedCTR.ctr} readOnly className="w-full p-3 border border-gray-400 rounded mt-2 bg-gray-100 text-black" />
+
+          <label className="block text-black font-medium mt-3">Conversions</label>
+          <input type="text" value={selectedCTR.conversions} readOnly className="w-full p-3 border border-gray-400 rounded mt-2 bg-gray-100 text-black" />
         </div>
       )}
     </div>
