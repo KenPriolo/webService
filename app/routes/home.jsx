@@ -1,6 +1,6 @@
 import React from "react";
 import { Welcome } from "../welcome/welcome";
-// import LoginPage from "../appAdmin/auth/sign-In/LoginPage";
+import LoginPage from "../appAdmin/auth/sign-In/LoginPage";
 // import SignUpPage from "../appAdmin/auth/sign-In/SignUpPage";
 // import AdminDashboard from "../appAdmin/dashboard/AdminDashboard";
 // import AdvertisementManagement from "../appAdmin/dashboard/AdvertisementManagement";
@@ -12,7 +12,7 @@ import { Welcome } from "../welcome/welcome";
 // import CTRConversions from "../appAdmin/dashboard/CTRConversions";
 // import TaxiFleetManagement from "../appAdmin/dashboard/TaxiFleetManagement";
 
-import Sidebar from "../appAdmin/dashboard/Sidebar";
+// import Sidebar from "../appAdmin/dashboard/Sidebar";
 
 
 // import TaxiFleetManagement from "../TaxiFleetManagement";
@@ -22,6 +22,6 @@ import Sidebar from "../appAdmin/dashboard/Sidebar";
 export default function Home() {
   // return <TaxiFleetManagement />;
   // return <RealTimeMap />;
-  return <Sidebar />;
+  return <LoginPage />;
 
 } 

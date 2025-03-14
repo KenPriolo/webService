@@ -1,16 +1,17 @@
 // React Router generated types for route:
-// routes/home.jsx
+// appAdmin/dashboard/AdminDashboard.jsx
 
 import type * as T from "react-router/route-module"
 
-import type { Info as Parent0 } from "../../+types/root.js"
+import type { Info as Parent0 } from "../../../+types/root.js"
+import type { Info as Parent1 } from "./DashboardLayout.js"
 
-type Module = typeof import("../home.js")
+type Module = typeof import("../AdminDashboard.js")
 
 export type Info = {
-  parents: [Parent0],
-  id: "routes/home"
-  file: "routes/home.jsx"
+  parents: [Parent0, Parent1],
+  id: "appAdmin/dashboard/AdminDashboard"
+  file: "appAdmin/dashboard/AdminDashboard.jsx"
   path: "undefined"
   params: {} & { [key: string]: string | undefined }
   module: Module

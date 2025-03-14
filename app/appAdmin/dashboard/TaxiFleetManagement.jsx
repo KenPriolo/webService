@@ -20,7 +20,7 @@ export default function TaxiFleetManagement() {
   return (
     <div className="bg-gray-100 min-h-screen p-5">
       {/* Header */}
-      <header className="flex justify-center items-center bg-gray-800 text-white p-5 rounded-lg shadow-md">
+      <header className="flex justify-center items-center bg-gray-900 text-white p-5 rounded-lg shadow-md">
         <h1 className="text-2xl font-bold text-white">Taxi Fleet Management</h1>
       </header>
 

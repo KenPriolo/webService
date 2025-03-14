@@ -64,10 +64,10 @@ const AdminTicketingSystem = () => {
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen p-6">
+    <div className="bg-gray-100 min-h-screen p-5">
       {/* Header */}
-      <header className="flex justify-center items-center bg-gray-800 text-white p-5 rounded-lg shadow-md">
-        <h1 className="text-3xl font-bold text-white">Admin Ticketing System</h1>
+      <header className="flex justify-center items-center bg-gray-900 text-white p-5 rounded-lg shadow-md">
+        <h1 className="text-2xl font-bold text-white">Admin Ticketing System</h1>
       </header>
 
       <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md mt-6 border border-gray-300">

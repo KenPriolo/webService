@@ -69,7 +69,7 @@ const LoginPage = () => {
 
           <div className="text-right">
             <button
-              onClick={() => navigate("/forgot-password")}
+              onClick={() => navigate("/forget_password")}
               className="text-green-600 hover:underline text-sm"
             >
               Forgot password?

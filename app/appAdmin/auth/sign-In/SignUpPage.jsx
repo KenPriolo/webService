@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../../../firebaseConfig";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom"; // Use navigate for navigation
 
 const SignUpPage = () => {
   const [email, setEmail] = useState("");
@@ -17,7 +17,7 @@ const SignUpPage = () => {
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       console.log("Sign-up successful!");
-      navigate("/web-service");
+      navigate("/login"); // Navigate to dashboard after signup
     } catch (error) {
       console.error("Sign-up error:", error.message);
       setError("Error signing up. Please try again.");
@@ -65,13 +65,22 @@ const SignUpPage = () => {
             </div>
           </div>
 
-          <button type="submit" className="w-full py-3 text-lg bg-red-700 text-white rounded-lg hover:bg-red-800 transition">
+          <button 
+            type="submit" 
+            className="w-full py-3 text-lg bg-red-700 text-white rounded-lg hover:bg-red-800 transition"
+          >
             Sign Up
           </button>
         </form>
 
         <p className="text-center text-gray-600 mt-4 text-sm">
-          Already have an account? <a href="/web-service" className="text-green-600 hover:underline">Log in</a>
+          Already have an account?{" "}
+          <button 
+            onClick={() => navigate("/login")} 
+            className="text-green-600 hover:underline"
+          >
+            Log in
+          </button>
         </p>
       </div>
     </div>

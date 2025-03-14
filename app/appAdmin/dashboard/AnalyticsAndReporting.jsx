@@ -36,8 +36,8 @@ export default function AnalyticsAndReporting() {
   return (
     <div className="bg-gray-100 min-h-screen p-5">
       {/* Header */}
-      <header className="flex justify-center items-center bg-gray-800 text-white p-5 rounded-lg shadow-md">
-        <h1 className="text-3xl font-bold text-white">Analytics & Reporting</h1>
+      <header className="flex justify-center items-center bg-gray-900 text-white p-5 rounded-lg shadow-md">
+        <h1 className="text-2xl font-bold text-white">Analytics & Reporting</h1>
       </header>
 
       {[{ title: "Engagement Trends", data: engagementTrends, dataKey1: "views", dataKey2: "clicks", color1: "#4f46e5", color2: "#16a34a" },

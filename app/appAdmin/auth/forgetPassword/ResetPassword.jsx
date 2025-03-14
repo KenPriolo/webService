@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "../../../../firebaseConfig";
+import { auth } from "../../../../firebaseConfig"; // Import auth from Firebase config
 import { useNavigate } from "react-router-dom";
 
 const ForgotPassword = () => {
@@ -17,11 +17,11 @@ const ForgotPassword = () => {
     e.preventDefault();
     setMessage("");
     setError("");
-    
+
     try {
-      await sendPasswordResetEmail(auth, email);
+      await sendPasswordResetEmail(auth, email); // Use Firebase to send reset email
       setMessage("Password reset email sent! Check your inbox.");
-      setTimeout(() => navigate("/login"), 5000);
+      setTimeout(() => navigate("/login"), 5000); // Redirect to login after 5 seconds
     } catch (error) {
       console.error("Error sending reset email:", error.message);
       setError("Failed to send reset email. Please check your email and try again.");
@@ -53,13 +53,22 @@ const ForgotPassword = () => {
             />
           </div>
 
-          <button type="submit" className="w-full py-3 text-lg bg-black text-white rounded-lg hover:bg-gray-800">
+          <button 
+            type="submit" 
+            className="w-full py-3 text-lg bg-black text-white rounded-lg hover:bg-gray-800"
+          >
             Send Reset Link
           </button>
         </form>
 
         <p className="text-center text-gray-600 mt-6 text-sm">
-          Remember your password? <a href="/login" className="text-black hover:underline">Log in</a>
+          Remember your password?{" "}
+          <button 
+            onClick={() => navigate("/login")} 
+            className="text-black hover:underline"
+          >
+            Log in
+          </button>
         </p>
       </div>
     </div>

@@ -38,7 +38,7 @@ export default function UploadsPage() {
     <div className="bg-gray-100 min-h-screen p-5">
       {/* Header */}
       <header className="flex justify-center items-center bg-gray-900 text-white p-5 rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold">Uploaded Advertisements</h1>
+        <h1 className="text-2xl font-bold text-white">Uploaded Advertisements</h1>
       </header>
 
       {/* Search & Uploaded Ads List */}
