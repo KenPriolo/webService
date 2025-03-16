@@ -4,14 +4,15 @@
 import type * as T from "react-router/route-module"
 
 import type { Info as Parent0 } from "../../../../+types/root.js"
+import type { Info as Parent1 } from "../../+types/AuthLayout.js"
 
 type Module = typeof import("../SignUpPage.js")
 
 export type Info = {
-  parents: [Parent0],
+  parents: [Parent0, Parent1],
   id: "appBranch/auth/sign-In/SignUpPage"
   file: "appBranch/auth/sign-In/SignUpPage.jsx"
-  path: "/branch-signup"
+  path: "signup"
   params: {} & { [key: string]: string | undefined }
   module: Module
   loaderData: T.CreateLoaderData<Module>

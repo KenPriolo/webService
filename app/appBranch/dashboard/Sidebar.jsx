@@ -1,65 +1,81 @@
 import { useNavigate } from "react-router-dom";
-import { Home, BarChart, Video, Users, Settings, LogOut, CalendarCheck } from "lucide-react";
+import { Home, BarChart, Video, Users, Settings, LogOut, CalendarCheck, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { useSidebar } from "../components/ui/SidebarContext";
 
 export default function Sidebar() {
   const navigate = useNavigate();
+  const { isCollapsed, setIsCollapsed } = useSidebar();
 
   const handleNavigation = (page) => {
     const routes = {
       "Dashboard": "/branch-dashboard",
-      "Advertisement Management": "/branch-dashboard/branch-advertisement-management",
+      "Ads Management": "/branch-dashboard/branch-advertisement-management",
       "Analytics & Reporting": "/branch-dashboard/branch-analytics-reporting",
       "Ticketing System": "/branch-dashboard/branch-ticketing-system",
       "Schedule & Duration": "/branch-dashboard/branch-schedule-duration",
       "Settings": "/branch-dashboard/branch-settings",
     };
-
     navigate(routes[page] || "/branch-dashboard");
   };
 
   return (
-    <div className="w-64 h-screen bg-gradient-to-b from-gray-700 to-gray-900 text-white flex flex-col flex-shrink-0">
-
-      {/* Fixed Top */}
-      <div className="p-5 flex-shrink-0">
-        <h2 className="text-xl font-bold text-center italic">Branch Portal</h2>
+    <div className={`h-screen ${isCollapsed ? "w-20" : "w-64"} bg-gradient-to-b from-white to-gray-100 text-blue-900 flex flex-col flex-shrink-0 border-r border-gray-200 shadow-lg transition-all duration-300`}>
+      {/* Toggle Button */}
+      <div className="flex justify-end p-3">
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="bg-blue-900 text-white p-2 rounded hover:bg-blue-800 transition"
+          title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+        >
+          {isCollapsed ? <ChevronsRight size={18} /> : <ChevronsLeft size={18} />}
+        </button>
       </div>
 
-      {/* Scrollable Middle */}
-      <div className="flex-grow overflow-y-auto px-3 space-y-0">
+      {/* Header */}
+      {!isCollapsed && (
+        <div className="p-5 flex-shrink-0 border-b border-gray-300">
+          <h2 className="text-xl font-bold text-center">Branch Portal</h2>
+        </div>
+      )}
+
+      {/* Navigation */}
+      <nav className="flex-grow flex flex-col gap-2 px-3 py-6">
         {[
           { label: "Dashboard", icon: <Home size={20} /> },
-          { label: "Advertisement Management", icon: <Video size={20} /> },
+          { label: "Ads Management", icon: <Video size={20} /> },
           { label: "Analytics & Reporting", icon: <BarChart size={20} /> },
           { label: "Ticketing System", icon: <Users size={20} /> },
           { label: "Schedule & Duration", icon: <CalendarCheck size={20} /> },
         ].map((item, index) => (
           <button
             key={index}
-            className="flex items-center gap-2 text-left px-4 py-3 rounded-md transition duration-300 w-full hover:bg-gray-700"
+            title={isCollapsed ? item.label : ""}
+            className={`flex ${isCollapsed ? "justify-center" : "justify-start gap-3"} items-center px-3 py-3 rounded-md transition duration-300 hover:bg-blue-100 text-sm font-medium`}
             onClick={() => handleNavigation(item.label)}
           >
-            {item.icon}
-            <span>{item.label}</span>
+            <span className="text-blue-700">{item.icon}</span>
+            {!isCollapsed && item.label}
           </button>
         ))}
-      </div>
+      </nav>
 
-      {/* Fixed Bottom */}
-      <div className="flex flex-col gap-3 p-5 flex-shrink-0">
+      {/* Footer */}
+      <div className="px-3 py-5 border-t border-gray-300 space-y-2">
         <button
-          className="flex items-center gap-2 px-2 py-3 rounded-md transition duration-300 w-full hover:bg-gray-700"
+          title={isCollapsed ? "Settings" : ""}
+          className={`flex ${isCollapsed ? "justify-center" : "justify-start gap-3"} items-center px-3 py-3 w-full hover:bg-blue-100 text-sm font-medium`}
           onClick={() => handleNavigation("Settings")}
         >
           <Settings size={20} />
-          <span>Settings</span>
+          {!isCollapsed && "Settings"}
         </button>
         <button
-          className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-2 py-3 rounded-md transition duration-300 w-full"
+          title={isCollapsed ? "Logout" : ""}
+          className={`flex ${isCollapsed ? "justify-center" : "justify-start gap-3"} items-center px-3 py-3 w-full bg-blue-900 hover:bg-blue-800 text-white rounded-md text-sm font-medium`}
           onClick={() => navigate("/branch-login")}
         >
-          <LogOut size={20} />
-          <span>Logout</span>
+          <LogOut size={18} />
+          {!isCollapsed && "Logout"}
         </button>
       </div>
     </div>

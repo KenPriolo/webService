@@ -1,18 +1,17 @@
 // React Router generated types for route:
-// appBranch/auth/forgetpassword/ResetPassword.jsx
+// appBranch/auth/AuthLayout.jsx
 
 import type * as T from "react-router/route-module"
 
-import type { Info as Parent0 } from "../../../../+types/root.js"
-import type { Info as Parent1 } from "../../+types/AuthLayout.js"
+import type { Info as Parent0 } from "../../../+types/root.js"
 
-type Module = typeof import("../ResetPassword.js")
+type Module = typeof import("../AuthLayout.js")
 
 export type Info = {
-  parents: [Parent0, Parent1],
-  id: "appBranch/auth/forgetpassword/ResetPassword"
-  file: "appBranch/auth/forgetpassword/ResetPassword.jsx"
-  path: "forget-password"
+  parents: [Parent0],
+  id: "appBranch/auth/AuthLayout"
+  file: "appBranch/auth/AuthLayout.jsx"
+  path: "/branch-login"
   params: {} & { [key: string]: string | undefined }
   module: Module
   loaderData: T.CreateLoaderData<Module>

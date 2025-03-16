@@ -9,11 +9,19 @@ declare module "react-router" {
 type Params = {
   "/": {};
   "/admin-login": {};
-  "/branch-login": {};
   "/admin-signup": {};
-  "/branch-signup": {};
   "/admin-forget-password": {};
+  "/branch-login": {};
+  "/branch-login/signup": {};
+  "/branch-login/forget-password": {};
+  "/branch-signup": {};
   "/branch-forget-password": {};
+  "/branch-dashboard": {};
+  "/branch-dashboard/branch-ticketing-system": {};
+  "/branch-dashboard/branch-advertisement-management": {};
+  "/branch-dashboard/branch-analytics-reporting": {};
+  "/branch-dashboard/branch-schedule-duration": {};
+  "/branch-dashboard/branch-settings": {};
   "/admin-dashboard": {};
   "/admin-dashboard/admin-advertisement-management": {};
   "/admin-dashboard/admin-taxi-fleet-management": {};
@@ -24,10 +32,4 @@ type Params = {
   "/admin-dashboard/admin-schedule-duration": {};
   "/admin-dashboard/admin-ctr-conversions": {};
   "/admin-dashboard/admin-settings": {};
-  "/branch-dashboard": {};
-  "/branch-dashboard/branch-ticketing-system": {};
-  "/branch-dashboard/branch-advertisement-management": {};
-  "/branch-dashboard/branch-analytics-reporting": {};
-  "/branch-dashboard/branch-schedule-duration": {};
-  "/branch-dashboard/branch-settings": {};
 };
