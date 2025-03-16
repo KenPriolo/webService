@@ -1,4 +1,3 @@
-// appBranch/Sidebar.jsx
 import { useNavigate } from "react-router-dom";
 import { Home, BarChart, Video, Users, Settings, LogOut, CalendarCheck } from "lucide-react";
 
@@ -19,9 +18,15 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="w-64 h-screen bg-gradient-to-b from-gray-700 to-gray-900 text-white p-5 flex flex-col flex-shrink-0">
-      <h2 className="text-xl font-bold text-center mb-5 italic">Branch Portal</h2>
-      <nav className="flex flex-col gap-3 flex-grow">
+    <div className="w-64 h-screen bg-gradient-to-b from-gray-700 to-gray-900 text-white flex flex-col flex-shrink-0">
+
+      {/* Fixed Top */}
+      <div className="p-5 flex-shrink-0">
+        <h2 className="text-xl font-bold text-center italic">Branch Portal</h2>
+      </div>
+
+      {/* Scrollable Middle */}
+      <div className="flex-grow overflow-y-auto px-3 space-y-0">
         {[
           { label: "Dashboard", icon: <Home size={20} /> },
           { label: "Advertisement Management", icon: <Video size={20} /> },
@@ -38,19 +43,20 @@ export default function Sidebar() {
             <span>{item.label}</span>
           </button>
         ))}
-      </nav>
+      </div>
 
-      <div className="flex flex-col gap-3 mt-auto">
+      {/* Fixed Bottom */}
+      <div className="flex flex-col gap-3 p-5 flex-shrink-0">
         <button
-          className="flex items-center gap-2 px-4 py-3 rounded-md transition duration-300 w-full hover:bg-gray-700"
+          className="flex items-center gap-2 px-2 py-3 rounded-md transition duration-300 w-full hover:bg-gray-700"
           onClick={() => handleNavigation("Settings")}
         >
           <Settings size={20} />
           <span>Settings</span>
         </button>
         <button
-          className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-md transition duration-300 w-full"
-          onClick={() => navigate("/branch_login")}
+          className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-2 py-3 rounded-md transition duration-300 w-full"
+          onClick={() => navigate("/branch-login")}
         >
           <LogOut size={20} />
           <span>Logout</span>

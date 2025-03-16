@@ -11,7 +11,7 @@ export type Info = {
   parents: [Parent0],
   id: "appAdmin/dashboard/DashboardLayout"
   file: "appAdmin/dashboard/DashboardLayout.jsx"
-  path: "/dashboard"
+  path: "/admin-dashboard"
   params: {} & { [key: string]: string | undefined }
   module: Module
   loaderData: T.CreateLoaderData<Module>

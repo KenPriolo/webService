@@ -11,7 +11,7 @@ export type Info = {
   parents: [Parent0],
   id: "appBranch/auth/sign-In/SignUpPage"
   file: "appBranch/auth/sign-In/SignUpPage.jsx"
-  path: "/branch_signup"
+  path: "/branch-signup"
   params: {} & { [key: string]: string | undefined }
   module: Module
   loaderData: T.CreateLoaderData<Module>

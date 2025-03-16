@@ -12,7 +12,7 @@ export type Info = {
   parents: [Parent0, Parent1],
   id: "appAdmin/dashboard/ScheduleDuration"
   file: "appAdmin/dashboard/ScheduleDuration.jsx"
-  path: "schedule-duration"
+  path: "admin-schedule-duration"
   params: {} & { [key: string]: string | undefined }
   module: Module
   loaderData: T.CreateLoaderData<Module>

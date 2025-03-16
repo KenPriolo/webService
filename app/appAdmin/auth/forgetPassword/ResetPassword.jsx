@@ -21,7 +21,7 @@ const ForgotPassword = () => {
     try {
       await sendPasswordResetEmail(auth, email); // Use Firebase to send reset email
       setMessage("Password reset email sent! Check your inbox.");
-      setTimeout(() => navigate("/login"), 5000); // Redirect to login after 5 seconds
+      setTimeout(() => navigate("/admin-login"), 5000); // Redirect to login after 5 seconds
     } catch (error) {
       console.error("Error sending reset email:", error.message);
       setError("Failed to send reset email. Please check your email and try again.");
@@ -64,7 +64,7 @@ const ForgotPassword = () => {
         <p className="text-center text-gray-600 mt-6 text-sm">
           Remember your password?{" "}
           <button 
-            onClick={() => navigate("/login")} 
+            onClick={() => navigate("/admin-login")} 
             className="text-black hover:underline"
           >
             Log in

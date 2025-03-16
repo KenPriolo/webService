@@ -11,7 +11,7 @@ export type Info = {
   parents: [Parent0],
   id: "appBranch/auth/forgetpassword/ResetPassword"
   file: "appBranch/auth/forgetpassword/ResetPassword.jsx"
-  path: "/branch_forget_password"
+  path: "/branch-forget-password"
   params: {} & { [key: string]: string | undefined }
   module: Module
   loaderData: T.CreateLoaderData<Module>

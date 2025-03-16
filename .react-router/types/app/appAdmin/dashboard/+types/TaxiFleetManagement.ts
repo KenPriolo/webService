@@ -12,7 +12,7 @@ export type Info = {
   parents: [Parent0, Parent1],
   id: "appAdmin/dashboard/TaxiFleetManagement"
   file: "appAdmin/dashboard/TaxiFleetManagement.jsx"
-  path: "taxi-fleet-management"
+  path: "admin-taxi-fleet-management"
   params: {} & { [key: string]: string | undefined }
   module: Module
   loaderData: T.CreateLoaderData<Module>

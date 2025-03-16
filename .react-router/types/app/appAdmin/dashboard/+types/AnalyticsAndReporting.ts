@@ -12,7 +12,7 @@ export type Info = {
   parents: [Parent0, Parent1],
   id: "appAdmin/dashboard/AnalyticsAndReporting"
   file: "appAdmin/dashboard/AnalyticsAndReporting.jsx"
-  path: "analytics-reporting"
+  path: "admin-analytics-reporting"
   params: {} & { [key: string]: string | undefined }
   module: Module
   loaderData: T.CreateLoaderData<Module>

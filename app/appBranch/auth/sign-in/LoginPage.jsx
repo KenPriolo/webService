@@ -5,22 +5,20 @@ import {
   signInWithPopup,
 } from "firebase/auth";
 import { auth } from "../../../../firebaseConfig";
-import { useNavigate } from "react-router-dom"; // React Router for Web
+import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const navigate = useNavigate(); // ✅ React Router for navigation
+  const navigate = useNavigate();
 
   const handleLogin = async () => {
     setError("");
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      console.log("Login successful!");
-      navigate("/branch-dashboard"); // ✅ Correct way to navigate in React Web
+      navigate("/branch-dashboard");
     } catch (error) {
-      console.error("Login error:", error.message);
       setError("Invalid email or password. Please try again.");
     }
   };
@@ -29,16 +27,23 @@ const LoginPage = () => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      console.log("Google Login successful!");
-      navigate("/branch-dashboard"); // ✅ Correct way to navigate in React Web
+      navigate("/branch-dashboard");
     } catch (error) {
-      console.error("Google Login error:", error.message);
       setError("Failed to sign in with Google. Please try again.");
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-green-800 to-red-800 px-4">
+    <div className="relative flex items-center justify-center min-h-screen bg-gradient-to-r from-green-800 to-red-800 px-4">
+
+      {/* Back to Homepage Button */}
+      <button
+        onClick={() => navigate("/")}
+        className="absolute top-5 right-5 text-white px-4 py-2 rounded shadow hover:bg-gray-500 transition"
+      >
+        Back to Homepage
+      </button>
+
       <div className="w-full max-w-md bg-white p-10 rounded-lg shadow-lg">
         <h2 className="text-3xl font-bold text-center mb-4">Login to AuAdsTri</h2>
 
@@ -69,7 +74,7 @@ const LoginPage = () => {
 
           <div className="text-right">
             <button
-              onClick={() => navigate("/branch_forget_password")}
+              onClick={() => navigate("/branch-forget-password")}
               className="text-green-600 hover:underline text-sm"
             >
               Forgot password?
@@ -97,7 +102,7 @@ const LoginPage = () => {
 
         <p className="text-center text-gray-600 mt-6 text-sm">
           New to AuAdsTri?{" "}
-          <button onClick={() => navigate("/branch_signup")} className="text-green-600 hover:underline">
+          <button onClick={() => navigate("/branch-signup")} className="text-green-600 hover:underline">
             Join now
           </button>
         </p>

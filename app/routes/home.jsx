@@ -1,31 +1,52 @@
-import React from "react";
-import { Welcome } from "../welcome/welcome";
-// import LoginPage from "../appAdmin/auth/sign-In/LoginPage";
-// import LoginPage from "../appBranch/auth/sign-In/LoginPage";
-// import SignUpPage from "../appAdmin/auth/sign-In/SignUpPage";
-// import SignUpPage from "../appBranch/auth/sign-In/SignUpPage";
-// import ForgotPassword from "../appBranch/auth/forgetPassword/ResetPassword";
-// import AdminDashboard from "../appAdmin/dashboard/AdminDashboard";
-// import AdvertisementManagement from "../appAdmin/dashboard/AdvertisementManagement";
-// import AnalyticsAndReporting from "../appAdmin/dashboard/AnalyticsAndReporting";
-// import AdminTicketingSystem from "../appAdmin/dashboard/AdminTicketingSystem";
-// import UploadsPage from "../appAdmin/dashboard/UploadsPage";
-// import LocationsPage from "../appAdmin/dashboard/LocationsPage";
-// import ScheduleDuration from "../appAdmin/dashboard/ScheduleDuration";
-// import CTRConversions from "../appAdmin/dashboard/CTRConversions";
-// import TaxiFleetManagement from "../appAdmin/dashboard/TaxiFleetManagement";
-
-// import Sidebar from "../appAdmin/dashboard/Sidebar";
-import Sidebar from "../appBranch/dashboard/Sidebar";
-
-
-// import TaxiFleetManagement from "../TaxiFleetManagement";
-
-
+import { useNavigate } from "react-router-dom";
+import { Facebook, Twitter, Instagram } from "lucide-react";
 
 export default function Home() {
-  // return <TaxiFleetManagement />;
-  // return <RealTimeMap />;
-  return <Sidebar />;
+  const navigate = useNavigate();
 
-} 
+  return (
+    <div
+      className="min-h-screen bg-cover bg-center flex flex-col items-left justify-center relative"
+      style={{ backgroundImage: "url('../../assets/geo.jpg')" }}
+    >
+      <div className="absolute inset-0 bg-black opacity-70"></div>
+
+      <div className="relative z-10 text-left text-white px-5 ml-10">
+        <p className="text-sm uppercase tracking-widest mb-3">Welcome to AuAdsTri</p>
+        <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6">
+          An intelligent ad system <br />
+          that activates dynamic <br />
+          campaigns based on <br />
+          real-time geofencing.
+        </h1>
+
+        <div className="flex gap-4 justify-start">
+          <button
+            onClick={() => navigate("/admin-login")}
+            className="border border-white px-6 py-3 rounded-md hover:bg-white hover:text-black transition"
+          >
+            Login to Admin
+          </button>
+          <button
+            onClick={() => navigate("/branch-login")}
+            className="border border-white px-6 py-3 rounded-md hover:bg-white hover:text-black transition"
+          >
+            Login to Client
+          </button>
+        </div>
+      </div>
+
+
+      <div className="absolute right-5 bottom-5 flex flex-col gap-4 z-10">
+        {[<Facebook size={20} />, <Twitter size={20} />, <Instagram size={20} />].map((icon, idx) => (
+          <button
+            key={idx}
+            className="text-white border border-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-white hover:text-black transition"
+          >
+            {icon}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}

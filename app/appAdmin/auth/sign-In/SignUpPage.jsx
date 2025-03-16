@@ -17,7 +17,7 @@ const SignUpPage = () => {
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       console.log("Sign-up successful!");
-      navigate("/login"); // Navigate to dashboard after signup
+      navigate("/admin-login"); // Navigate to dashboard after signup
     } catch (error) {
       console.error("Sign-up error:", error.message);
       setError("Error signing up. Please try again.");
@@ -76,7 +76,7 @@ const SignUpPage = () => {
         <p className="text-center text-gray-600 mt-4 text-sm">
           Already have an account?{" "}
           <button 
-            onClick={() => navigate("/login")} 
+            onClick={() => navigate("/admin-login")} 
             className="text-green-600 hover:underline"
           >
             Log in
