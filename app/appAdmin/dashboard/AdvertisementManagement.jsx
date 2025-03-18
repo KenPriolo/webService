@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Upload, MapPin, Calendar, BarChart2 } from "lucide-react";
+import { Upload, MapPin, Calendar } from "lucide-react";
+import { db } from "../../../firebaseConfig";
+import { doc, setDoc, addDoc, collection, Timestamp } from "firebase/firestore";
 
 export default function AdvertisementManagement() {
-  const [ads, setAds] = useState([]);
   const [companyName, setCompanyName] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
-  const [schedule, setSchedule] = useState("");
-  const [address, setAddress] = useState("");
-  const [location, setLocation] = useState({ lat: 37.7749, lng: -122.4194 }); // Default: San Francisco
-  const [customIcon, setCustomIcon] = useState(null);
+  const [expiryDate, setExpiryDate] = useState("");
+  const [pureAddress, setPureAddress] = useState("");
+  const [geocodedAddress, setGeocodedAddress] = useState("");
+  const [latitude, setLatitude] = useState(37.7749);
+  const [longitude, setLongitude] = useState(-122.4194);
+  const [map, setMap] = useState(null); // ✅ Store map instance for zoom control
   const [leafletReady, setLeafletReady] = useState(false);
   const [MapContainer, setMapContainer] = useState(null);
   const [TileLayer, setTileLayer] = useState(null);
@@ -17,47 +20,42 @@ export default function AdvertisementManagement() {
   const [useMapEvents, setUseMapEvents] = useState(null);
   const navigate = useNavigate();
 
-  // ✅ Dynamically import Leaflet & React-Leaflet
+  // ✅ Dynamically Import Leaflet Components
   useEffect(() => {
     if (typeof window !== "undefined") {
-      Promise.all([
-        import("leaflet"),
-        import("react-leaflet")
-      ]).then(([leaflet, reactLeaflet]) => {
-        setCustomIcon(
-          new leaflet.Icon({
-            iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-          })
-        );
-        // Load React-Leaflet components dynamically
+      Promise.all([import("leaflet"), import("react-leaflet")]).then(([leaflet, reactLeaflet]) => {
         setMapContainer(reactLeaflet.MapContainer);
         setTileLayer(reactLeaflet.TileLayer);
         setMarker(reactLeaflet.Marker);
         setUseMapEvents(() => reactLeaflet.useMapEvents);
         setLeafletReady(true);
-      });
+      }).catch((error) => console.error("Leaflet loading error:", error));
     }
   }, []);
 
-  // ✅ Geocode Address & Move Map
-  const handleAddressChange = async (e) => {
+  // ✅ Fetch Lat/Lng from Address (Geocoding)
+  const handlePureAddressChange = async (e) => {
     const newAddress = e.target.value;
-    setAddress(newAddress);
+    setPureAddress(newAddress);
 
     if (newAddress.trim().length > 3) {
       try {
         const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(newAddress)}`
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(newAddress)}&addressdetails=1&limit=1`
         );
         const data = await response.json();
 
         if (data.length > 0) {
           const { lat, lon, display_name } = data[0];
-          setLocation({ lat: parseFloat(lat), lng: parseFloat(lon) });
-          setAddress(display_name); // ✅ Update address with full formatted name
+          setLatitude(parseFloat(lat));
+          setLongitude(parseFloat(lon));
+          setGeocodedAddress(display_name);
+
+          if (map) {
+            map.setView([lat, lon], 15); // ✅ Zoom in when address is found
+          }
+        } else {
+          setGeocodedAddress("Address not found");
         }
       } catch (error) {
         console.error("Geocoding error:", error);
@@ -65,28 +63,21 @@ export default function AdvertisementManagement() {
     }
   };
 
-  // ✅ Handle Ad Submission (Send to Database)
-  const handleSubmitAd = async () => {
-    if (companyName && selectedFile && address && schedule) {
-      const newAd = {
-        company: companyName,
-        file: selectedFile.name,
-        address,
-        schedule,
-        latitude: location.lat, // ✅ Send latitude
-        longitude: location.lng, // ✅ Send longitude
-      };
+  // ✅ Fetch Address from Lat/Lng (Reverse Geocoding)
+  const handleLatLngChange = async () => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`
+      );
+      const data = await response.json();
 
-      console.log("Submitting ad:", newAd); // ✅ Debugging to check what is submitted
-
-      // 🔹 Replace with your API/database integration
-      // await saveAdToDatabase(newAd);
-
-      setAds([...ads, newAd]);
-      setCompanyName("");
-      setSelectedFile(null);
-      setAddress("");
-      setSchedule("");
+      if (data.display_name) {
+        setGeocodedAddress(data.display_name);
+      } else {
+        setGeocodedAddress("Unknown location");
+      }
+    } catch (error) {
+      console.error("Reverse geocoding error:", error);
     }
   };
 
@@ -94,84 +85,108 @@ export default function AdvertisementManagement() {
     if (!useMapEvents || !Marker) return null;
     useMapEvents({
       click(e) {
-        setLocation({ lat: e.latlng.lat, lng: e.latlng.lng });
-        setAddress(`Lat: ${e.latlng.lat}, Lng: ${e.latlng.lng}`);
+        setLatitude(e.latlng.lat);
+        setLongitude(e.latlng.lng);
+        handleLatLngChange();
+        
+        if (map) {
+          map.setView([e.latlng.lat, e.latlng.lng], 15); // ✅ Zoom in on map click
+        }
       },
     });
 
-    return <Marker position={location} icon={customIcon} />;
+    return <Marker position={{ lat: latitude, lng: longitude }} />;
   }
+
+  const handleSubmitAd = async () => {
+    if (!companyName.trim() || !selectedFile || !pureAddress.trim()) {
+      alert("Please fill all required fields.");
+      return;
+    }
+
+    try {
+      console.log("📤 Uploading file to Cloudinary...");
+
+      // 🔹 Upload video to Cloudinary
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      formData.append("upload_preset", "yp3oxvpp");
+      formData.append("resource_type", "video");
+      formData.append("chunk_size", "6000000");
+
+      const uploadResponse = await fetch("https://api.cloudinary.com/v1_1/dafdsqf6h/video/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error("Failed to upload video to Cloudinary");
+      }
+
+      const uploadData = await uploadResponse.json();
+      const fileUrl = uploadData.secure_url;
+
+      console.log("✅ Video uploaded! URL:", fileUrl);
+
+      // 🔹 Save ad data to Firestore
+      await addDoc(collection(db, "ads"), {
+        companyName,
+        adFileUrl: fileUrl,
+        address: geocodedAddress,
+        latitude,
+        longitude,
+        contractStatus: "active",
+        expiryDate: expiryDate ? Timestamp.fromDate(new Date(expiryDate)) : null,
+        createdAt: Timestamp.now(),
+      });
+
+      console.log("✅ Successfully saved to Firestore!");
+
+      // ✅ Clear all fields after successful upload
+      setCompanyName("");
+      setSelectedFile(null);
+      setExpiryDate("");
+      setPureAddress("");
+      setGeocodedAddress("");
+      setLatitude(37.7749);
+      setLongitude(-122.4194);
+      alert("Ad successfully uploaded and fields cleared!");
+
+    } catch (error) {
+      console.error("❌ Error submitting ad:", error);
+      alert("Error uploading ad. Please try again.");
+    }
+  };
 
   return (
     <div className="bg-gray-100 min-h-screen p-5">
-      {/* Header */}
       <header className="flex justify-center items-center bg-gray-900 text-white p-5 rounded-lg shadow-md">
         <h1 className="text-2xl font-bold text-white">Advertisement Management</h1>
       </header>
 
-      {/* Upload Form */}
       <div className="bg-white p-6 rounded-lg shadow-md mt-5 border border-gray-300">
         <h3 className="text-lg font-semibold text-black mb-3">Upload New Advertisement</h3>
-        <input
-          type="text"
-          placeholder="Enter Company Name"
-          value={companyName}
-          onChange={(e) => setCompanyName(e.target.value)}
-          className="w-full p-3 border border-gray-400 rounded mt-2 text-black"
-        />
-        <input
-          type="file"
-          onChange={(e) => setSelectedFile(e.target.files[0])}
-          className="w-full p-3 border border-gray-400 rounded mt-2 text-black"
-        />
 
-        {/* Address Input */}
-        <input
-          type="text"
-          placeholder="Enter Address or Click on Map"
-          value={address}
-          onChange={handleAddressChange}  // ✅ Now updates map location when user enters an address
-          className="w-full p-3 border border-gray-400 rounded mt-2 text-black"
-        />
+        <input type="text" placeholder="Enter Company Name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="w-full p-3 border border-gray-400 rounded mt-2 text-black" />
 
-        {/* Leaflet Map - Ensuring Map Loads Properly */}
+        <input type="file" onChange={(e) => setSelectedFile(e.target.files[0])} className="w-full p-3 border border-gray-400 rounded mt-2 text-black" />
+
+        <input type="text" placeholder="Enter Address" value={pureAddress} onChange={handlePureAddressChange} className="w-full p-3 border border-gray-400 rounded mt-2 text-black" />
+
+        <input type="text" placeholder="Geocoded Address (Auto-filled)" value={geocodedAddress} readOnly className="w-full p-3 border border-gray-400 rounded mt-2 text-gray-500 bg-gray-200" />
+
+        <div className="flex gap-3 mt-2">
+          <input type="text" placeholder="Latitude" value={latitude} onChange={(e) => setLatitude(e.target.value)} onBlur={handleLatLngChange} className="w-full p-3 border border-gray-400 rounded text-black" />
+          <input type="text" placeholder="Longitude" value={longitude} onChange={(e) => setLongitude(e.target.value)} onBlur={handleLatLngChange} className="w-full p-3 border border-gray-400 rounded text-black" />
+        </div>
+
+        <input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="w-full p-3 border border-gray-400 rounded mt-2 text-black" />
+
         <div className="h-60 w-full mt-3">
-          {leafletReady && MapContainer && TileLayer && (
-            <MapContainer
-              key={`${location.lat}-${location.lng}`} // ✅ Forces re-render when location changes
-              center={location}
-              zoom={13}
-              style={{ height: "100%", width: "100%" }}
-            >
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-              <LocationMarker />
-            </MapContainer>
-          )}
+          {leafletReady && MapContainer && TileLayer && <MapContainer center={{ lat: latitude, lng: longitude }} zoom={13} whenCreated={setMap} style={{ height: "100%", width: "100%" }}><TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" /><LocationMarker /></MapContainer>}
         </div>
 
-        {/* DateTime Picker */}
-        <div className="relative w-full">
-          <label className="block text-black font-medium mt-3">Ad Expiry Date (Due Date)</label>
-          <input
-            id="datetimeInput"
-            type="datetime-local"
-            value={schedule}
-            onChange={(e) => setSchedule(e.target.value)}
-            className="w-full p-3 border border-gray-400 rounded mt-2 text-black pr-10 cursor-pointer"
-          />
-          <Calendar
-            className="absolute right-3 top-10 text-gray-600 cursor-pointer"
-            size={20}
-            onClick={() => document.getElementById("datetimeInput").showPicker()}
-          />
-        </div>
-
-        <button
-          onClick={handleSubmitAd}
-          className="w-full mt-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white p-3 rounded shadow-md hover:brightness-110 transition"
-        >
-          Submit Ad
-        </button>
+        <button onClick={handleSubmitAd} className="w-full mt-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white p-3 rounded shadow-md hover:brightness-110 transition">Submit Ad</button>
       </div>
     </div>
   );

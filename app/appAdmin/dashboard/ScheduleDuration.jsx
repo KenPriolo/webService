@@ -1,34 +1,39 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CalendarCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { db } from "../../../firebaseConfig";
+import { collection, getDocs } from "firebase/firestore";
 
 export default function ScheduleDuration() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [schedules, setSchedules] = useState([
-    { id: 1, client: "ABC Corporation", file: "ad1.jpg", location: "New York", date: "2025-03-01", duration: "10 days" },
-    { id: 2, client: "XYZ Ltd.", file: "ad2.png", location: "Los Angeles", date: "2025-03-05", duration: "15 days" },
-  ]);
+  const [schedules, setSchedules] = useState([]);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [newDuration, setNewDuration] = useState("");
+
+  useEffect(() => {
+    const fetchSchedules = async () => {
+      const adsCollection = collection(db, "ads");
+      const snapshot = await getDocs(adsCollection);
+      const adsData = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        client: doc.data().companyName,
+        location: doc.data().address,
+        date: new Date(doc.data().createdAt.seconds * 1000).toLocaleDateString(),
+        expiry: doc.data().expiryDate ? new Date(doc.data().expiryDate.seconds * 1000).toLocaleDateString() : "N/A",
+        duration: doc.data().expiryDate
+          ? `${Math.ceil((doc.data().expiryDate.seconds * 1000 - doc.data().createdAt.seconds * 1000) / (1000 * 60 * 60 * 24))} days`
+          : "N/A",
+      }));
+      setSchedules(adsData);
+    };
+
+    fetchSchedules();
+  }, []);
 
   const handleRowClick = (schedule) => {
     setSelectedSchedule(schedule);
     setNewDuration(schedule.duration);
-  };
-
-  const handleUpdateDuration = () => {
-    if (selectedSchedule && newDuration) {
-      setSchedules(
-        schedules.map((schedule) =>
-          schedule.id === selectedSchedule.id
-            ? { ...schedule, duration: newDuration }
-            : schedule
-        )
-      );
-      setSelectedSchedule(null);
-      setNewDuration("");
-    }
   };
 
   const filteredSchedules = schedules.filter(schedule =>
@@ -37,13 +42,11 @@ export default function ScheduleDuration() {
 
   return (
     <div className="bg-gray-100 min-h-screen p-5">
-      {/* Header */}
       <header className="flex justify-center items-center bg-gray-900 text-white p-5 rounded-lg shadow-md">
         <h1 className="text-2xl font-bold text-white">Schedule & Duration</h1>
         <CalendarCheck size={32} />
       </header>
-      
-      {/* Search Input */}
+
       <input
         type="text"
         placeholder="Search by client name..."
@@ -52,16 +55,15 @@ export default function ScheduleDuration() {
         className="w-full p-3 border border-gray-400 rounded my-4 text-black shadow-sm"
       />
 
-      {/* Schedules Table */}
       <div className="bg-white p-5 rounded-lg shadow-md">
         <h3 className="text-lg font-semibold text-black mb-3">Scheduled Advertisements</h3>
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-blue-500 text-white">
               <th className="p-3 text-left">Client Name</th>
-              <th className="p-3 text-left">File Name</th>
               <th className="p-3 text-left">Location</th>
               <th className="p-3 text-left">Scheduled Date</th>
+              <th className="p-3 text-left">Expiry</th>
               <th className="p-3 text-left">Duration</th>
             </tr>
           </thead>
@@ -70,9 +72,9 @@ export default function ScheduleDuration() {
               filteredSchedules.map((schedule) => (
                 <tr key={schedule.id} className="border-b hover:bg-gray-100 cursor-pointer">
                   <td className="p-3 text-black" onClick={() => handleRowClick(schedule)}>{schedule.client}</td>
-                  <td className="p-3 text-black" onClick={() => handleRowClick(schedule)}>{schedule.file}</td>
                   <td className="p-3 text-black" onClick={() => handleRowClick(schedule)}>{schedule.location}</td>
                   <td className="p-3 text-black" onClick={() => handleRowClick(schedule)}>{schedule.date}</td>
+                  <td className="p-3 text-black" onClick={() => handleRowClick(schedule)}>{schedule.expiry}</td>
                   <td className="p-3 text-black" onClick={() => handleRowClick(schedule)}>{schedule.duration}</td>
                 </tr>
               ))
@@ -85,7 +87,6 @@ export default function ScheduleDuration() {
         </table>
       </div>
 
-      {/* Edit Section - Appears when a schedule is selected */}
       {selectedSchedule && (
         <div className="bg-white p-5 rounded-lg shadow-md mt-5">
           <h3 className="text-lg font-semibold text-black">Edit Schedule Duration</h3>
@@ -94,14 +95,6 @@ export default function ScheduleDuration() {
           <input 
             type="text" 
             value={selectedSchedule.client} 
-            readOnly 
-            className="w-full p-3 border border-gray-400 rounded mt-2 bg-gray-100 text-black"
-          />
-
-          <label className="block text-black font-medium mt-3">File Name</label>
-          <input 
-            type="text" 
-            value={selectedSchedule.file} 
             readOnly 
             className="w-full p-3 border border-gray-400 rounded mt-2 bg-gray-100 text-black"
           />
@@ -122,6 +115,14 @@ export default function ScheduleDuration() {
             className="w-full p-3 border border-gray-400 rounded mt-2 bg-gray-100 text-black"
           />
 
+          <label className="block text-black font-medium mt-3">Expiry Date</label>
+          <input 
+            type="text" 
+            value={selectedSchedule.expiry} 
+            readOnly 
+            className="w-full p-3 border border-gray-400 rounded mt-2 bg-gray-100 text-black"
+          />
+
           <label className="block text-black font-medium mt-3">New Duration</label>
           <input 
             type="text" 
@@ -132,7 +133,7 @@ export default function ScheduleDuration() {
           />
 
           <button 
-            onClick={handleUpdateDuration} 
+            onClick={() => setSelectedSchedule(null)} 
             className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition cursor-pointer w-full"
           >
             Update Duration

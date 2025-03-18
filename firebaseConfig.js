@@ -1,21 +1,30 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
+import { getAnalytics } from "firebase/analytics";
 
-// Your Firebase configuration
+// 🔹 Firebase configuration for Advertisement Management
 const firebaseConfig = {
-  apiKey: "AIzaSyAwedJvnnE3wx8q_EuB8WvJIeTLCYb7dHs",
-  authDomain: "auadstri.firebaseapp.com",
-  projectId: "auadstri",
-  storageBucket: "auadstri.appspot.com", // ✅ Fixed storageBucket
-  messagingSenderId: "973171137986",
-  appId: "1:973171137986:web:3c8fbc44cdcc420f4f0a5b",
-  measurementId: "G-BWH0YNQ3NJ"
+  apiKey: "AIzaSyAraoE97AyKWfCWrtC7iXFhUys3SnXB7do",
+  authDomain: "advertisementmanagement-2ffcd.firebaseapp.com",
+  projectId: "advertisementmanagement-2ffcd",
+  storageBucket: "advertisementmanagement-2ffcd.firebasestorage.app", // ✅ Fixed storageBucket URL
+  messagingSenderId: "202528285414",
+  appId: "1:202528285414:web:cf3f76bcfd2cca5b39d127",
+  measurementId: "G-DN76N01VCY"
 };
 
-// Prevent multiple Firebase instances
+// 🔹 Prevent multiple Firebase instances
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
-export { app, auth, db };
+// 🔥 Only initialize analytics in the browser
+let analytics;
+if (typeof window !== "undefined") {
+  analytics = getAnalytics(app);
+}
+
+export { app, auth, db, storage, analytics };

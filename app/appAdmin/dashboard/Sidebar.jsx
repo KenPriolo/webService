@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Home, BarChart, Car, Users, MonitorSmartphone, Settings, LogOut, Upload, Calendar, Calculator } from "lucide-react";
+import { Home, BarChart, MapPin, Car, Users, MonitorSmartphone, Settings, LogOut, Upload, Calendar, Calculator } from "lucide-react";
 
 export default function Sidebar() {
   const navigate = useNavigate();
@@ -10,10 +10,11 @@ export default function Sidebar() {
       "Advertisement Management": "/admin-dashboard/admin-advertisement-management",
       "Taxi Fleet Management": "/admin-dashboard/admin-taxi-fleet-management",
       "Analytics & Reporting": "/admin-dashboard/admin-analytics-reporting",
-      "Ticketing System": "/admin-dashboard/admin-ticketing-system",
+      "Uploads": "/admin-dashboard/admin-uploads",
+      "Locations": "/admin-dashboard/admin-locations",
       "Schedule & Duration": "/admin-dashboard/admin-schedule-duration",
       "CTR & Conversions": "/admin-dashboard/admin-ctr-conversions",
-      "Uploads": "/admin-dashboard/admin-uploads",
+      "Ticketing System": "/admin-dashboard/admin-ticketing-system",
       "Settings": "/admin-dashboard/admin-settings",
     };
 
@@ -35,10 +36,11 @@ export default function Sidebar() {
           { label: "Advertisement Management", icon: <MonitorSmartphone size={20} /> },
           { label: "Taxi Fleet Management", icon: <Car size={20} /> },
           { label: "Analytics & Reporting", icon: <BarChart size={20} /> },
-          { label: "Ticketing System", icon: <Users size={20} /> },
+          { label: "Uploads", icon: <Upload size={20} /> },
+          { label: "Locations", icon: <MapPin size={20} /> },
           { label: "Schedule & Duration", icon: <Calendar size={20} /> },
           { label: "CTR & Conversions", icon: <Calculator size={20} /> },
-          { label: "Uploads", icon: <Upload size={20} /> },
+          { label: "Ticketing System", icon: <Users size={20} /> },
         ].map((item, index) => (
           <button
             key={index}

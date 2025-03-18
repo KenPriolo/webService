@@ -1,41 +1,59 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
-
-const revenueData = [
-  { name: "Jan", revenue: 12000 },
-  { name: "Feb", revenue: 15000 },
-  { name: "Mar", revenue: 18000 },
-  { name: "Apr", revenue: 22000 },
-  { name: "May", revenue: 25000 },
-];
-
-const weeklyTrends = [
-  { name: "Week 1", revenue: 30000 },
-  { name: "Week 2", revenue: 32000 },
-  { name: "Week 3", revenue: 29000 },
-  { name: "Week 4", revenue: 34000 },
-];
-
-const yearlyTrends = [
-  { name: "2020", revenue: 150000 },
-  { name: "2021", revenue: 180000 },
-  { name: "2022", revenue: 200000 },
-  { name: "2023", revenue: 220000 },
-];
-
-const engagementTrends = [
-  { name: "Mon", views: 4000, clicks: 2400 },
-  { name: "Tue", views: 3000, clicks: 2210 },
-  { name: "Wed", views: 5000, clicks: 2290 },
-  { name: "Thu", views: 4780, clicks: 2000 },
-  { name: "Fri", views: 5890, clicks: 2181 },
-  { name: "Sat", views: 4390, clicks: 2500 },
-  { name: "Sun", views: 4490, clicks: 2100 },
-];
+import { useEffect, useState } from "react";
+import { db } from "../../../firebaseConfig";
+import { collection, getDocs } from "firebase/firestore";
 
 export default function AnalyticsAndReporting() {
+  const [revenueData, setRevenueData] = useState([]);
+  const [weeklyTrends, setWeeklyTrends] = useState([]);
+  const [yearlyTrends, setYearlyTrends] = useState([]);
+  const [engagementTrends, setEngagementTrends] = useState([]);
+
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      const adsRef = collection(db, "ads");
+      const snapshot = await getDocs(adsRef);
+      const ads = snapshot.docs.map(doc => doc.data());
+
+      // Example static transformation (you can replace this with dynamic logic based on your data)
+      setRevenueData([
+        { name: "Jan", revenue: 12000 },
+        { name: "Feb", revenue: 15000 },
+        { name: "Mar", revenue: 18000 },
+        { name: "Apr", revenue: 22000 },
+        { name: "May", revenue: 25000 },
+      ]);
+
+      setWeeklyTrends([
+        { name: "Week 1", revenue: 30000 },
+        { name: "Week 2", revenue: 32000 },
+        { name: "Week 3", revenue: 29000 },
+        { name: "Week 4", revenue: 34000 },
+      ]);
+
+      setYearlyTrends([
+        { name: "2020", revenue: 150000 },
+        { name: "2021", revenue: 180000 },
+        { name: "2022", revenue: 200000 },
+        { name: "2023", revenue: 220000 },
+      ]);
+
+      setEngagementTrends([
+        { name: "Mon", views: 4000, clicks: 2400 },
+        { name: "Tue", views: 3000, clicks: 2210 },
+        { name: "Wed", views: 5000, clicks: 2290 },
+        { name: "Thu", views: 4780, clicks: 2000 },
+        { name: "Fri", views: 5890, clicks: 2181 },
+        { name: "Sat", views: 4390, clicks: 2500 },
+        { name: "Sun", views: 4490, clicks: 2100 },
+      ]);
+    };
+
+    fetchAnalytics();
+  }, []);
+
   return (
     <div className="bg-gray-100 min-h-screen p-5">
-      {/* Header */}
       <header className="flex justify-center items-center bg-gray-900 text-white p-5 rounded-lg shadow-md">
         <h1 className="text-2xl font-bold text-white">Analytics & Reporting</h1>
       </header>
