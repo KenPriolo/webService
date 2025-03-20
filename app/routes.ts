@@ -4,9 +4,15 @@ export default [
   index("routes/home.jsx"),
 
   // ADMIN AUTH ROUTES
-  route("/admin-login", "appAdmin/auth/sign-In/LoginPage.jsx"),
-  route("/admin-signup", "appAdmin/auth/sign-In/SignUpPage.jsx"),
-  route("/admin-forget-password", "appAdmin/auth/forgetpassword/ResetPassword.jsx"),
+  route("/admin-login", "appAdmin/auth/AuthLayout.jsx", [
+    index("appAdmin/auth/sign-In/LoginPage.jsx"),
+    route("signup", "appAdmin/auth/sign-In/SignUpPage.jsx"),
+    route("forget-password", "appAdmin/auth/forgetpassword/ResetPassword.jsx"),
+  ]),
+
+  // Redirects using components
+  route("/admin-signup", "appAdmin/redirects/AdminSignupRedirect.jsx"),
+  route("/admin-forget-password", "appAdmin/redirects/AdminForgetPasswordRedirect.jsx"),
 
   // BRANCH AUTH (with AuthLayout as parent route)
   route("/branch-login", "appBranch/auth/AuthLayout.jsx", [

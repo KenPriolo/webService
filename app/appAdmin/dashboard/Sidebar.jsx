@@ -1,13 +1,15 @@
 import { useNavigate } from "react-router-dom";
-import { Home, BarChart, MapPin, Car, Users, MonitorSmartphone, Settings, LogOut, Upload, Calendar, Calculator } from "lucide-react";
+import { Home, BarChart, MapPin, Car, Users, MonitorSmartphone, Settings, LogOut, Upload, Calendar, Calculator, ChevronsLeft, ChevronsRight  } from "lucide-react";
+import { useSidebar } from "../components/ui/SidebarContext";
 
 export default function Sidebar() {
   const navigate = useNavigate();
+  const { isCollapsed, setIsCollapsed } = useSidebar();
 
   const handleNavigation = (page) => {
     const routes = {
       "Dashboard Overview": "/admin-dashboard",
-      "Advertisement Management": "/admin-dashboard/admin-advertisement-management",
+      "Ads Management": "/admin-dashboard/admin-advertisement-management",
       "Taxi Fleet Management": "/admin-dashboard/admin-taxi-fleet-management",
       "Analytics & Reporting": "/admin-dashboard/admin-analytics-reporting",
       "Uploads": "/admin-dashboard/admin-uploads",
@@ -18,22 +20,34 @@ export default function Sidebar() {
       "Settings": "/admin-dashboard/admin-settings",
     };
 
-    navigate(routes[page] || "/branch-dashboard");
+    navigate(routes[page] || "/admin-dashboard");
   };
 
   return (
-    <div className="w-64 h-screen bg-gradient-to-b from-gray-700 to-gray-900 text-white flex flex-col flex-shrink-0">
-
-      {/* Fixed Top */}
-      <div className="p-5 flex-shrink-0">
-        <h2 className="text-xl font-bold text-center italic">AuAdsTri</h2>
+    <div className={`h-screen ${isCollapsed ? "w-20" : "w-64"} bg-gradient-to-b from-white to-gray-100 text-blue-900 flex flex-col flex-shrink-0 border-r border-gray-200 shadow-lg transition-all duration-300`}>
+      {/* Toggle Button */}
+      <div className="flex justify-end p-3">
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="bg-blue-900 text-white p-2 rounded hover:bg-blue-800 transition"
+          title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+        >
+          {isCollapsed ? <ChevronsRight size={18} /> : <ChevronsLeft size={18} />}
+        </button>
       </div>
 
-      {/* Scrollable Middle */}
-      <div className="flex-grow overflow-y-auto px-3 space-y-0">
-        {[
+      {/* Header */}
+      {!isCollapsed && (
+        <div className="p-5 flex-shrink-0 border-b border-gray-300">
+          <h2 className="text-xl font-bold text-center">AuAdstri Admin</h2>
+        </div>
+      )}
+
+      {/* Navigation */}
+      <nav className="flex-grow flex flex-col gap-2 px-3 py-6 overflow-y-auto">
+        {[ 
           { label: "Dashboard Overview", icon: <Home size={20} /> },
-          { label: "Advertisement Management", icon: <MonitorSmartphone size={20} /> },
+          { label: "Ads Management", icon: <MonitorSmartphone size={20} /> },
           { label: "Taxi Fleet Management", icon: <Car size={20} /> },
           { label: "Analytics & Reporting", icon: <BarChart size={20} /> },
           { label: "Uploads", icon: <Upload size={20} /> },
@@ -44,30 +58,34 @@ export default function Sidebar() {
         ].map((item, index) => (
           <button
             key={index}
-            className="flex items-center gap-2 text-left px-4 py-3 rounded-md transition duration-300 w-full hover:bg-gray-700"
+            title={isCollapsed ? item.label : ""}
+            className={`flex ${isCollapsed ? "justify-center" : "justify-start gap-3"} items-center px-3 py-3 rounded-md transition duration-300 hover:bg-blue-100 text-sm font-medium`}
             onClick={() => handleNavigation(item.label)}
           >
-            {item.icon}
-            <span>{item.label}</span>
+            <span className="text-blue-700">{item.icon}</span>
+            {!isCollapsed && item.label}
           </button>
         ))}
-      </div>
+      </nav>
 
-      {/* Fixed Bottom */}
-      <div className="flex flex-col gap-3 p-5 flex-shrink-0">
+
+      {/* Footer */}
+      <div className="flex flex-col gap-3 p-5 flex-shrink-0 px-3 py-5 border-t border-gray-300 space-y-2">
         <button
-          className="flex items-center gap-2 px-2 py-3 rounded-md transition duration-300 w-full hover:bg-gray-700"
+          title={isCollapsed ? "Settings" : ""}
+          className={`flex ${isCollapsed ? "justify-center" : "justify-start gap-3"} items-center px-3 py-3 w-full hover:bg-blue-100 text-sm font-medium`}
           onClick={() => handleNavigation("Settings")}
         >
           <Settings size={20} />
-          <span>Settings</span>
+          {!isCollapsed && "Settings"}
         </button>
         <button
-          className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-2 py-3 rounded-md transition duration-300 w-full"
+          title={isCollapsed ? "Logout" : ""}
+          className={`flex ${isCollapsed ? "justify-center" : "justify-start gap-3"} items-center px-3 py-3 w-full bg-blue-900 hover:bg-blue-800 text-white rounded-md text-sm font-medium`}
           onClick={() => navigate("/admin-login")}
         >
-          <LogOut size={20} />
-          <span>Logout</span>
+          <LogOut size={18} />
+          {!isCollapsed && "Logout"}
         </button>
       </div>
     </div>

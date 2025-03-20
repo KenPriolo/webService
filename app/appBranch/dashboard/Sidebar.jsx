@@ -39,7 +39,7 @@ export default function Sidebar() {
       )}
 
       {/* Navigation */}
-      <nav className="flex-grow flex flex-col gap-2 px-3 py-6">
+      <nav className="flex-grow flex flex-col gap-2 px-3 py-6 overflow-y-auto">
         {[
           { label: "Dashboard", icon: <Home size={20} /> },
           { label: "Ads Management", icon: <Video size={20} /> },
