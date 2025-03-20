@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../firebaseConfig";
 import { tabletDb } from "../firebaseTabletConfig";
-import { collection, getDocs, doc, getDoc } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, updateDoc } from "firebase/firestore";
 
 const RealTimeMap = () => {
   const [LeafletComponents, setLeafletComponents] = useState(null);
@@ -94,11 +94,12 @@ const RealTimeMap = () => {
             const loc = locationSnap.data();
             return {
               id: deviceId,
-              company: companyDoc.data().companyName || companyId,
+              companyId: companyId,
               latitude: loc.latitude,
               longitude: loc.longitude,
-              status: deviceDoc.data().status,
-              driver: deviceDoc.data().assignedTo || "Unknown"
+              locationRef,
+              geofenceAreaName: loc.geofenceAreaName || "",
+              geofenceTriggered: loc.geofenceTriggered || false,
             };
           }
           return null;
@@ -114,20 +115,40 @@ const RealTimeMap = () => {
     fetchTaxis();
   }, []);
 
-  // Geofence detection logic
+  // Geofence detection logic with reset
   useEffect(() => {
     if (!LeafletComponents || geofences.length === 0 || taxis.length === 0) return;
 
-    taxis.forEach((taxi) => {
-      geofences.forEach((geo) => {
+    taxis.forEach(async (taxi) => {
+      let insideGeofence = false;
+      let detectedArea = "";
+
+      for (const geo of geofences) {
         const distance = LeafletComponents.L
           .latLng(taxi.latitude, taxi.longitude)
           .distanceTo([geo.latitude, geo.longitude]);
 
         if (distance <= (geo.radius || 500)) {
-          console.log(`🚖 Taxi ${taxi.id} entered geofence "${geo.companyName}"`);
+          insideGeofence = true;
+          detectedArea = geo.companyName;
+          break; // Stop at the first matched geofence
         }
-      });
+      }
+
+      // Update Firestore if state differs
+      if (insideGeofence && (!taxi.geofenceTriggered || taxi.geofenceAreaName !== detectedArea)) {
+        await updateDoc(taxi.locationRef, {
+          geofenceTriggered: true,
+          geofenceAreaName: detectedArea,
+        });
+        console.log(`✅ Taxi ${taxi.id} ENTERED geofence "${detectedArea}"`);
+      } else if (!insideGeofence && taxi.geofenceTriggered) {
+        await updateDoc(taxi.locationRef, {
+          geofenceTriggered: false,
+          geofenceAreaName: "",
+        });
+        console.log(`🚪 Taxi ${taxi.id} EXITED all geofences`);
+      }
     });
   }, [taxis, geofences, LeafletComponents]);
 
@@ -150,9 +171,8 @@ const RealTimeMap = () => {
           <Marker key={taxi.id} position={[taxi.latitude, taxi.longitude]} icon={carIcon}>
             <Popup>
               <strong>Taxi ID:</strong> {taxi.id} <br />
-              <strong>Company:</strong> {taxi.company} <br />
-              <strong>Driver:</strong> {taxi.driver} <br />
-              <strong>Status:</strong> {taxi.status} <br />
+              <strong>Status:</strong> {taxi.geofenceTriggered ? "Inside Geofence" : "Outside Geofence"} <br />
+              <strong>Area:</strong> {taxi.geofenceAreaName || "None"} <br />
               Lat: {taxi.latitude} <br />
               Lng: {taxi.longitude}
             </Popup>
