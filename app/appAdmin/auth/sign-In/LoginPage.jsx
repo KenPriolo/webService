@@ -8,24 +8,36 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // For loading state
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      setError("Email and password are required.");
+      return;
+    }
+
     setError("");
+    setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
       navigate("/admin-dashboard");
     } catch (err) {
       setError("Invalid email or password. Please try again.");
+    } finally {
+      setIsLoading(false); // Reset loading state after request
     }
   };
 
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
+    setIsLoading(true); // Set loading state for Google sign-in
     try {
       await signInWithPopup(auth, provider);
       navigate("/admin-dashboard");
     } catch (err) {
-      setError("Failed to sign in with Google.");
+      setError("Failed to sign in with Google. Please try again.");
+    } finally {
+      setIsLoading(false); // Reset loading state after request
     }
   };
 
@@ -61,25 +73,32 @@ const LoginPage = () => {
           </div>
         </div>
         <div className="text-right">
-            <button
-              onClick={() => navigate("/admin-login/forget-password")}
-              className="text-green-600 hover:underline text-sm"
-            >
-              Forgot password?
-            </button>
-          </div>
+          <button
+            onClick={() => navigate("/admin-login/forget-password")}
+            className="text-green-600 hover:underline text-sm"
+          >
+            Forgot password?
+          </button>
+        </div>
 
         <div className="space-y-4">
           <button
             onClick={handleGoogleLogin}
             className="bg-white text-blue-900 border border-blue-900 w-full py-2 rounded flex items-center justify-center gap-2"
+            disabled={isLoading} // Disable the button while loading
           >
             <img src="https://img.icons8.com/color/24/000000/google-logo.png" alt="Google" />
-            Sign in with Google
+            {isLoading ? "Signing in with Google..." : "Sign in with Google"}
           </button>
           <div className="flex justify-between">
             <button onClick={() => navigate("/")} className="bg-blue-900 text-white px-4 py-2 rounded">Home</button>
-            <button onClick={handleLogin} className="bg-blue-900 text-white px-4 py-2 rounded">Sign In</button>
+            <button
+              onClick={handleLogin}
+              className="bg-blue-900 text-white px-4 py-2 rounded"
+              disabled={isLoading} // Disable the button while loading
+            >
+              {isLoading ? "Signing in..." : "Sign In"}
+            </button>
           </div>
           <p className="text-center text-blue-900 text-sm">
             New to AuAdsTri?{" "}

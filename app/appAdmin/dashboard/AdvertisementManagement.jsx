@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Upload, MapPin, Calendar } from "lucide-react";
-import { db } from "../../../firebaseConfig";
-import { doc, setDoc, addDoc, collection, Timestamp } from "firebase/firestore";
+import { db } from "../../../firebaseConfig";  // Ensure this includes your Firebase setup
+import { getAuth } from "firebase/auth";  // Import Firebase Authentication
+import { doc, setDoc, addDoc, collection, Timestamp, getDocs } from "firebase/firestore";
 
 export default function AdvertisementManagement() {
   const [companyName, setCompanyName] = useState("");
@@ -12,7 +13,7 @@ export default function AdvertisementManagement() {
   const [geocodedAddress, setGeocodedAddress] = useState("");
   const [latitude, setLatitude] = useState(37.7749);
   const [longitude, setLongitude] = useState(-122.4194);
-  const [map, setMap] = useState(null); // ✅ Store map instance for zoom control
+  const [map, setMap] = useState(null); 
   const [leafletReady, setLeafletReady] = useState(false);
   const [MapContainer, setMapContainer] = useState(null);
   const [TileLayer, setTileLayer] = useState(null);
@@ -20,7 +21,7 @@ export default function AdvertisementManagement() {
   const [useMapEvents, setUseMapEvents] = useState(null);
   const navigate = useNavigate();
 
-  // ✅ Dynamically Import Leaflet Components
+  // Dynamically Import Leaflet Components
   useEffect(() => {
     if (typeof window !== "undefined") {
       Promise.all([import("leaflet"), import("react-leaflet")]).then(([leaflet, reactLeaflet]) => {
@@ -33,7 +34,7 @@ export default function AdvertisementManagement() {
     }
   }, []);
 
-  // ✅ Fetch Lat/Lng from Address (Geocoding)
+  // Fetch Lat/Lng from Address (Geocoding)
   const handlePureAddressChange = async (e) => {
     const newAddress = e.target.value;
     setPureAddress(newAddress);
@@ -52,18 +53,20 @@ export default function AdvertisementManagement() {
           setGeocodedAddress(display_name);
 
           if (map) {
-            map.setView([lat, lon], 15); // ✅ Zoom in when address is found
+            map.setView([lat, lon], 15); // Zoom in when address is found
           }
         } else {
           setGeocodedAddress("Address not found");
+          alert("Address not found, please try again.");
         }
       } catch (error) {
         console.error("Geocoding error:", error);
+        setGeocodedAddress("Error occurred while geocoding address");
       }
     }
   };
 
-  // ✅ Fetch Address from Lat/Lng (Reverse Geocoding)
+  // Fetch Address from Lat/Lng (Reverse Geocoding)
   const handleLatLngChange = async () => {
     try {
       const response = await fetch(
@@ -90,7 +93,7 @@ export default function AdvertisementManagement() {
         handleLatLngChange();
         
         if (map) {
-          map.setView([e.latlng.lat, e.latlng.lng], 15); // ✅ Zoom in on map click
+          map.setView([e.latlng.lat, e.latlng.lng], 15); // Zoom in on map click
         }
       },
     });
@@ -99,15 +102,23 @@ export default function AdvertisementManagement() {
   }
 
   const handleSubmitAd = async () => {
+    const auth = getAuth();
+    const user = auth.currentUser;  // Get the current authenticated user
+
     if (!companyName.trim() || !selectedFile || !pureAddress.trim()) {
       alert("Please fill all required fields.");
+      return;
+    }
+
+    if (!user) {
+      alert("You must be logged in to submit an ad.");
       return;
     }
 
     try {
       console.log("📤 Uploading file to Cloudinary...");
 
-      // 🔹 Upload video to Cloudinary
+      // Upload video to Cloudinary
       const formData = new FormData();
       formData.append("file", selectedFile);
       formData.append("upload_preset", "yp3oxvpp");
@@ -128,8 +139,11 @@ export default function AdvertisementManagement() {
 
       console.log("✅ Video uploaded! URL:", fileUrl);
 
-      // 🔹 Save ad data to Firestore
-      await addDoc(collection(db, "ads"), {
+      // Save ad data under the companyName directly as document ID
+      const adRef = doc(db, "ads", companyName); // Use companyName as the document ID
+
+      // Save ad data with the dynamically generated companyId
+      await setDoc(adRef, {
         companyName,
         adFileUrl: fileUrl,
         address: geocodedAddress,
@@ -138,11 +152,12 @@ export default function AdvertisementManagement() {
         contractStatus: "active",
         expiryDate: expiryDate ? Timestamp.fromDate(new Date(expiryDate)) : null,
         createdAt: Timestamp.now(),
+        userId: user.uid,  // Store the user's UID to ensure it's associated with this ad
       });
 
       console.log("✅ Successfully saved to Firestore!");
 
-      // ✅ Clear all fields after successful upload
+      // Clear all fields after successful upload
       setCompanyName("");
       setSelectedFile(null);
       setExpiryDate("");
@@ -167,20 +182,61 @@ export default function AdvertisementManagement() {
       <div className="bg-white p-6 rounded-lg shadow-md mt-5 border border-gray-300">
         <h3 className="text-lg font-semibold text-black mb-3">Upload New Advertisement</h3>
 
-        <input type="text" placeholder="Enter Company Name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="w-full p-3 border border-gray-400 rounded mt-2 text-black" />
+        <input 
+          type="text" 
+          placeholder="Enter Company Name" 
+          value={companyName} 
+          onChange={(e) => setCompanyName(e.target.value)} 
+          className="w-full p-3 border border-gray-400 rounded mt-2 text-black" 
+        />
 
-        <input type="file" onChange={(e) => setSelectedFile(e.target.files[0])} className="w-full p-3 border border-gray-400 rounded mt-2 text-black" />
+        <input 
+          type="file" 
+          onChange={(e) => setSelectedFile(e.target.files[0])} 
+          className="w-full p-3 border border-gray-400 rounded mt-2 text-black" 
+        />
 
-        <input type="text" placeholder="Enter Address" value={pureAddress} onChange={handlePureAddressChange} className="w-full p-3 border border-gray-400 rounded mt-2 text-black" />
+        <input 
+          type="text" 
+          placeholder="Enter Address" 
+          value={pureAddress} 
+          onChange={handlePureAddressChange} 
+          className="w-full p-3 border border-gray-400 rounded mt-2 text-black" 
+        />
 
-        <input type="text" placeholder="Geocoded Address (Auto-filled)" value={geocodedAddress} readOnly className="w-full p-3 border border-gray-400 rounded mt-2 text-gray-500 bg-gray-200" />
+        <input 
+          type="text" 
+          placeholder="Geocoded Address (Auto-filled)" 
+          value={geocodedAddress} 
+          readOnly 
+          className="w-full p-3 border border-gray-400 rounded mt-2 text-gray-500 bg-gray-200" 
+        />
 
         <div className="flex gap-3 mt-2">
-          <input type="text" placeholder="Latitude" value={latitude} onChange={(e) => setLatitude(e.target.value)} onBlur={handleLatLngChange} className="w-full p-3 border border-gray-400 rounded text-black" />
-          <input type="text" placeholder="Longitude" value={longitude} onChange={(e) => setLongitude(e.target.value)} onBlur={handleLatLngChange} className="w-full p-3 border border-gray-400 rounded text-black" />
+          <input 
+            type="text" 
+            placeholder="Latitude" 
+            value={latitude} 
+            onChange={(e) => setLatitude(e.target.value)} 
+            onBlur={handleLatLngChange} 
+            className="w-full p-3 border border-gray-400 rounded text-black" 
+          />
+          <input 
+            type="text" 
+            placeholder="Longitude" 
+            value={longitude} 
+            onChange={(e) => setLongitude(e.target.value)} 
+            onBlur={handleLatLngChange} 
+            className="w-full p-3 border border-gray-400 rounded text-black" 
+          />
         </div>
 
-        <input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="w-full p-3 border border-gray-400 rounded mt-2 text-black" />
+        <input 
+          type="date" 
+          value={expiryDate} 
+          onChange={(e) => setExpiryDate(e.target.value)} 
+          className="w-full p-3 border border-gray-400 rounded mt-2 text-black" 
+        />
 
         <div className="h-60 w-full mt-3">
           {leafletReady && MapContainer && TileLayer && <MapContainer center={{ lat: latitude, lng: longitude }} zoom={13} whenCreated={setMap} style={{ height: "100%", width: "100%" }}><TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" /><LocationMarker /></MapContainer>}

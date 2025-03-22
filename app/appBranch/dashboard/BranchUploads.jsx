@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { db } from "../../../firebaseConfig";  // Import Firebase DB
-import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
-import { getAuth } from "firebase/auth";  // Firebase Auth for current user
+import React, { useState, useEffect } from "react";
+import { db } from "../../../firebaseConfig";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { getAuth } from "firebase/auth";  // To access the current user's authentication details
 
 export default function BranchUploadsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -14,8 +14,9 @@ export default function BranchUploadsPage() {
     const auth = getAuth();
     const user = auth.currentUser; // Get the current logged-in user
     if (user) {
-      setUserId(user.uid); // Set user ID
+      setUserId(user.uid); // Set the user ID
     } else {
+      // Handle the case when the user is not logged in (for example, redirect to login page)
       console.log("User not logged in");
     }
   }, []);
@@ -25,35 +26,18 @@ export default function BranchUploadsPage() {
     if (userId) {
       const fetchAds = async () => {
         // Query ads for the current user (specific to their userId)
-        const adsCollection = collection(db, "client_web", userId, "ads");
-        const querySnapshot = await getDocs(adsCollection);
-        const fetchedAds = querySnapshot.docs.map((doc) => {
-          const adData = doc.data();
-          const duration = calculateDuration(adData.createdAt, adData.expiryDate);
-          return {
-            id: doc.id,
-            ...adData,
-            duration: duration
-          };
-        });
+        const adsCollection = collection(db, "client_web", userId, "ads"); // The correct collection for this user
+        const querySnapshot = await getDocs(adsCollection); // Query based on userId
+        const fetchedAds = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
         setAds(fetchedAds);
       };
 
       fetchAds();
     }
   }, [userId]); // Run this effect when userId changes
-
-  const calculateDuration = (startDate, endDate) => {
-    // Calculate the duration in days
-    const start = startDate?.toDate();
-    const end = endDate?.seconds ? new Date(endDate.seconds * 1000) : null;
-
-    if (!start || !end) return "N/A"; // Return N/A if dates are invalid
-
-    const timeDiff = Math.abs(end - start); // Difference in milliseconds
-    const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24)); // Convert ms to days
-    return `${diffDays} days`;
-  };
 
   const filteredAds = ads.filter((ad) =>
     (ad.companyName || "").toLowerCase().includes(searchTerm.toLowerCase())
@@ -66,7 +50,7 @@ export default function BranchUploadsPage() {
   return (
     <div className="bg-gray-100 min-h-screen p-5">
       <header className="flex justify-center items-center bg-gray-900 text-white p-5 rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-white">Schedule & Duration</h1>
+        <h1 className="text-2xl font-bold text-white">Uploaded Advertisements</h1>
       </header>
 
       <div className="bg-white p-5 rounded-lg shadow-md mt-5">
@@ -86,7 +70,7 @@ export default function BranchUploadsPage() {
           <span>Location</span>
           <span>Schedule</span>
           <span>Expiry</span>
-          <span>Duration</span>
+          <span>Actions</span>
         </div>
 
         <ul className="space-y-3 mt-2">
@@ -108,9 +92,15 @@ export default function BranchUploadsPage() {
                 <span className="text-black">
                   <strong>Expiry:</strong> {ad.expiryDate ? new Date(ad.expiryDate.seconds * 1000).toLocaleString() : "N/A"}
                 </span>
-                <span className="text-black">
-                  <strong>Duration:</strong> {ad.duration}
-                </span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Replace with actual delete logic if needed
+                  }}
+                  className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition cursor-pointer"
+                >
+                  Delete
+                </button>
               </li>
             ))
           )}
@@ -147,12 +137,6 @@ export default function BranchUploadsPage() {
           <input
             type="text"
             value={selectedAd.expiryDate ? new Date(selectedAd.expiryDate.seconds * 1000).toLocaleString() : "N/A"}
-            readOnly
-            className="w-full p-3 border border-gray-400 rounded mt-2 bg-gray-200 text-black"
-          />
-          <input
-            type="text"
-            value={selectedAd.duration}
             readOnly
             className="w-full p-3 border border-gray-400 rounded mt-2 bg-gray-200 text-black"
           />

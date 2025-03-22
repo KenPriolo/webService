@@ -32,6 +32,7 @@ export default [
     route("branch-advertisement-management", "appBranch/dashboard/AdvertisementManagement.jsx"),
     route("branch-analytics-reporting", "appBranch/dashboard/AnalyticsReporting.jsx"),
     route("branch-schedule-duration", "appBranch/dashboard/ScheduleDuration.jsx"),
+    route("branch-uploads", "appBranch/dashboard/BranchUploads.jsx"),
     route("branch-settings", "appBranch/dashboard/Settings.jsx"),
   ]),
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { db } from "../firebaseConfig";
-import { tabletDb } from "../firebaseTabletConfig";
+import { db } from "../firebaseConfig"; // Source Firestore (AdvertisementManagement)
+import { tabletDb } from "../firebaseTabletConfig"; // Target Firestore (tablet-service)
 import { collection, getDocs, doc, getDoc, updateDoc } from "firebase/firestore";
 
 const RealTimeMap = () => {
@@ -122,32 +122,77 @@ const RealTimeMap = () => {
     taxis.forEach(async (taxi) => {
       let insideGeofence = false;
       let detectedArea = "";
+      let videoUrl = ""; // Default to no video
 
+      console.log(`Checking Taxi ${taxi.id} at lat: ${taxi.latitude}, lng: ${taxi.longitude}`);
+
+      // Check if the taxi is inside any of the geofences
       for (const geo of geofences) {
         const distance = LeafletComponents.L
           .latLng(taxi.latitude, taxi.longitude)
           .distanceTo([geo.latitude, geo.longitude]);
 
+        console.log(`Checking geofence: ${geo.companyName} at lat: ${geo.latitude}, lng: ${geo.longitude}, distance: ${distance}`);
+
+        // If taxi is inside the geofence
         if (distance <= (geo.radius || 500)) {
+          console.log(`Taxi ${taxi.id} is inside geofence: ${geo.companyName}`);
           insideGeofence = true;
           detectedArea = geo.companyName;
+
+          // Fetch adFileUrl from the `ads` collection in Firestore based on geofence area
+          const adDocRef = doc(db, "ads", geo.id);
+          const adDocSnap = await getDoc(adDocRef);
+
+          if (adDocSnap.exists()) {
+            videoUrl = adDocSnap.data().adFileUrl || ""; // Get the adFileUrl from the geofence's ad
+            console.log(`Ad File URL: ${videoUrl}`); // Log the fetched video URL
+          } else {
+            console.log(`No ad found for geofence ${geo.companyName}`);
+          }
           break; // Stop at the first matched geofence
         }
       }
 
-      // Update Firestore if state differs
+      // Log when taxi enters the geofence
       if (insideGeofence && (!taxi.geofenceTriggered || taxi.geofenceAreaName !== detectedArea)) {
+        console.log(`✅ Taxi ${taxi.id} ENTERED geofence "${detectedArea}"`); // Log message on entry
+
+        // Update Firestore if state differs
         await updateDoc(taxi.locationRef, {
           geofenceTriggered: true,
           geofenceAreaName: detectedArea,
         });
-        console.log(`✅ Taxi ${taxi.id} ENTERED geofence "${detectedArea}"`);
+
+        // If geofence is triggered, update the videoUrl in tablet-service Firestore
+        if (videoUrl) {
+          try {
+            const locationRef = doc(tabletDb, `taxiCompany/${taxi.companyId}/devices/${taxi.id}/location/device_location`);
+            await updateDoc(locationRef, {
+              videoUrl: videoUrl,
+            });
+            console.log(`✅ Video URL set for Taxi ${taxi.id}`);
+          } catch (error) {
+            console.error("Error updating video URL in tablet-service Firestore:", error);
+          }
+        } else {
+          console.log("No video URL to set.");
+        }
       } else if (!insideGeofence && taxi.geofenceTriggered) {
+        console.log(`🚪 Taxi ${taxi.id} EXITED all geofences`); // Log when taxi exits the geofence
+
+        // Update Firestore if taxi exits geofence
         await updateDoc(taxi.locationRef, {
           geofenceTriggered: false,
           geofenceAreaName: "",
         });
-        console.log(`🚪 Taxi ${taxi.id} EXITED all geofences`);
+
+        // Clear the videoUrl when taxi exits the geofence
+        const locationRef = doc(tabletDb, `taxiCompany/${taxi.companyId}/devices/${taxi.id}/location/device_location`);
+        await updateDoc(locationRef, {
+          videoUrl: "",
+        });
+        console.log(`🚪 Video URL cleared for Taxi ${taxi.id}`);
       }
     });
   }, [taxis, geofences, LeafletComponents]);

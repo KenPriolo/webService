@@ -23,6 +23,7 @@ type Params = {
   "/branch-dashboard/branch-advertisement-management": {};
   "/branch-dashboard/branch-analytics-reporting": {};
   "/branch-dashboard/branch-schedule-duration": {};
+  "/branch-dashboard/branch-uploads": {};
   "/branch-dashboard/branch-settings": {};
   "/admin-dashboard": {};
   "/admin-dashboard/admin-advertisement-management": {};

@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Home, BarChart, Video, Users, Settings, LogOut, CalendarCheck, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Home, BarChart, Video, Users, Settings, LogOut, CalendarCheck, ChevronsLeft, ChevronsRight, CloudUpload } from "lucide-react";
 import { useSidebar } from "../components/ui/SidebarContext";
 
 export default function Sidebar() {
@@ -14,6 +14,7 @@ export default function Sidebar() {
       "Ticketing System": "/branch-dashboard/branch-ticketing-system",
       "Schedule & Duration": "/branch-dashboard/branch-schedule-duration",
       "Settings": "/branch-dashboard/branch-settings",
+      "Uploads": "/branch-dashboard/branch-uploads", // Added uploads route
     };
     navigate(routes[page] || "/branch-dashboard");
   };
@@ -40,12 +41,13 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-grow flex flex-col gap-2 px-3 py-6 overflow-y-auto">
-        {[
+        {[ 
           { label: "Dashboard", icon: <Home size={20} /> },
           { label: "Ads Management", icon: <Video size={20} /> },
+          { label: "Uploads", icon: <CloudUpload size={20} /> }, 
           { label: "Analytics & Reporting", icon: <BarChart size={20} /> },
-          { label: "Ticketing System", icon: <Users size={20} /> },
           { label: "Schedule & Duration", icon: <CalendarCheck size={20} /> },
+          { label: "Ticketing System", icon: <Users size={20} /> },
         ].map((item, index) => (
           <button
             key={index}
