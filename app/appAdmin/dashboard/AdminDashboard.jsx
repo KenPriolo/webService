@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "../components/ui/Card";
 import Button from "../components/ui/Button";
-import { MapPin, Users, CreditCard, Video, Globe, TrendingUp } from "lucide-react";
+import { MapPin, Users, CreditCard, Video, Globe, TrendingUp, Clock } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useEffect, useState } from 'react';
 import { db } from "../../../firebaseConfig";
@@ -13,6 +13,7 @@ export default function AdminDashboard() {
   const [taxisCount, setTaxisCount] = useState(0);
   const [geofencesCount, setGeofencesCount] = useState(0);
   const [topClient, setTopClient] = useState("-");
+  const [recentAds, setRecentAds] = useState([]);
 
   const dashboardData = [
     { name: 'Mon', revenue: 4000, impressions: 2400 },
@@ -27,10 +28,20 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       const adsSnapshot = await getDocs(collection(db, 'ads'));
+      const adsList = adsSnapshot.docs.map(doc => doc.data());
+
+      const companyStats = {};
+      adsList.forEach(ad => {
+        companyStats[ad.companyName] = (companyStats[ad.companyName] || 0) + 1;
+      });
+
+      const topClientEntry = Object.entries(companyStats).sort((a, b) => b[1] - a[1])[0];
+
       setAdsCount(adsSnapshot.size);
-      setGeofencesCount(adsSnapshot.size); // Assuming geofences = ads
+      setGeofencesCount(adsSnapshot.size);
       setTaxisCount(50); // Placeholder
-      setTopClient(adsSnapshot.docs[0]?.data().companyName || "-");
+      setTopClient(topClientEntry ? topClientEntry[0] : "-");
+      setRecentAds(adsList.slice(-5).reverse());
     };
 
     fetchStats();
@@ -80,22 +91,19 @@ export default function AdminDashboard() {
         </ResponsiveContainer>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
-        <Card onClick={() => navigate('/map')} className="bg-white p-5 rounded-lg shadow-md flex justify-between items-center cursor-pointer">
-          <CardContent>
-            <h3 className="text-lg font-semibold text-black">Live Taxi Map</h3>
-            <p className="text-sm text-black">View taxis and zones</p>
-          </CardContent>
-          <Globe size={32} />
-        </Card>
 
-        <Card onClick={() => navigate('/ctr')} className="bg-white p-5 rounded-lg shadow-md flex justify-between items-center cursor-pointer">
-          <CardContent>
-            <h3 className="text-lg font-semibold text-black">Top Client by CTR</h3>
-            <p className="text-sm text-black">{topClient}</p>
-          </CardContent>
-          <TrendingUp size={32} />
-        </Card>
+      {/* New Section: Recent Uploads */}
+      <div className="bg-white p-5 rounded-lg shadow-md mt-5">
+        <h3 className="text-lg font-semibold mb-3 text-black flex items-center gap-2"><Clock size={20}/> Recent Uploads</h3>
+        <ul className="space-y-3">
+          {recentAds.map((ad, idx) => (
+            <li key={idx} className="flex justify-between border-b pb-2 text-sm">
+              <span>{ad.companyName}</span>
+              <span className="text-gray-600 truncate max-w-[50%]">{ad.address}</span>
+            </li>
+          ))}
+          {recentAds.length === 0 && <p className="text-gray-500 text-sm">No recent uploads.</p>}
+        </ul>
       </div>
     </div>
   );

@@ -2,24 +2,30 @@ import { useState, useEffect } from "react";
 import { CheckCircle, Video, MapPin } from "lucide-react";
 import GoogleMapComponent from "../../RealTimeMap.jsx";
 import { db } from "../../../firebaseConfig";
-import { collection, getDocs } from "firebase/firestore";
+import { collectionGroup, onSnapshot, collection, getDocs } from "firebase/firestore";
 
 export default function TaxiFleetManagement() {
   const [taxis, setTaxis] = useState([]);
   const [geofenceCount, setGeofenceCount] = useState(0);
 
   useEffect(() => {
-    const fetchTaxis = async () => {
-      const taxiRef = collection(db, "taxis");
-      const snapshot = await getDocs(taxiRef);
-      const fetchedTaxis = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        driver: doc.data().driver || "Unknown",
-        location: doc.data().location || "Unknown",
-        status: doc.data().status || "Offline",
-      }));
-      setTaxis(fetchedTaxis);
-    };
+    // Real-time listener for tabletDevice documents
+    const unsubTaxis = onSnapshot(
+      collectionGroup(db, "tabletDevice"),
+      (snapshot) => {
+        const fetchedTaxis = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            driverName: data.driverName || "Unknown",
+            assignedTablet: data.assignedTablet || "N/A",
+            isOnline: data.isOnline || false,
+            pairedAt: data.pairedAt || null,
+          };
+        });
+        setTaxis(fetchedTaxis);
+      }
+    );
 
     const fetchGeofences = async () => {
       const geoRef = collection(db, "ads");
@@ -27,11 +33,12 @@ export default function TaxiFleetManagement() {
       setGeofenceCount(snapshot.size);
     };
 
-    fetchTaxis();
     fetchGeofences();
+
+    return () => unsubTaxis();
   }, []);
 
-  const onlineTaxis = taxis.filter((taxi) => taxi.status === "Online").length;
+  const onlineTaxis = taxis.filter((taxi) => taxi.isOnline === true).length;
   const runningAds = onlineTaxis;
 
   return (
@@ -41,19 +48,19 @@ export default function TaxiFleetManagement() {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-300 flex flex-col items-center">
+        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-300 flex flex-col items-center hover:scale-105 transition">
           <CheckCircle size={40} className="text-green-500" />
           <h3 className="text-xl font-semibold text-black mt-3">Online Taxis</h3>
           <p className="text-3xl font-bold text-black">{onlineTaxis}</p>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-300 flex flex-col items-center">
+        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-300 flex flex-col items-center hover:scale-105 transition">
           <MapPin size={40} className="text-indigo-500" />
           <h3 className="text-xl font-semibold text-black mt-3">Geofence Areas</h3>
           <p className="text-3xl font-bold text-black">{geofenceCount}</p>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-300 flex flex-col items-center">
+        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-300 flex flex-col items-center hover:scale-105 transition">
           <Video size={40} className="text-blue-500" />
           <h3 className="text-xl font-semibold text-black mt-3">Running Ads</h3>
           <p className="text-3xl font-bold text-black">{runningAds}</p>

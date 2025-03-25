@@ -1,21 +1,21 @@
 import React, { useState } from "react";
 import { useSidebar } from "../components/ui/SidebarContext";
 import { db } from "../../../firebaseConfig";
-import { addDoc, collection, Timestamp, getDocs } from "firebase/firestore";
-import { getAuth } from "firebase/auth";  // Import Firebase Authentication to get the user ID
+import { addDoc, collection, Timestamp } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 export default function AdvertisementManagement() {
   const { isCollapsed } = useSidebar();
   const [companyName, setCompanyName] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
-  const [schedule, setSchedule] = useState("");  // Will store the date value (without time)
-  const [address, setAddress] = useState(""); // New state for the address field
+  const [schedule, setSchedule] = useState("");
+  const [address, setAddress] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // Loading state
 
-  // Function to get the logged-in user's ID
   const getUserId = () => {
     const auth = getAuth();
-    const user = auth.currentUser;  // Get the current logged-in user
-    return user ? user.uid : null;  // Return user ID if logged in, otherwise return null
+    const user = auth.currentUser;
+    return user ? user.uid : null;
   };
 
   const handleSubmitAd = async () => {
@@ -25,12 +25,13 @@ export default function AdvertisementManagement() {
       return;
     }
 
-    if (companyName && selectedFile && schedule && address) { // Make sure all required fields are filled
+    if (companyName && selectedFile && schedule && address) {
       try {
-        // Upload video to Cloudinary
+        setIsLoading(true); // Start loading
+
         const formData = new FormData();
         formData.append("file", selectedFile);
-        formData.append("upload_preset", "yp3oxvpp");  // Cloudinary preset for video upload
+        formData.append("upload_preset", "yp3oxvpp");
         formData.append("resource_type", "video");
         formData.append("chunk_size", "6000000");
 
@@ -46,32 +47,28 @@ export default function AdvertisementManagement() {
         const uploadData = await uploadResponse.json();
         const fileUrl = uploadData.secure_url;
 
-        // Get the reference to the user's ads collection
-        const adsRef = collection(db, "client_web", userId, "ads");  // Use the userId dynamically
-
-        // Create the ad data object
+        const adsRef = collection(db, "client_web", userId, "ads");
         const newAd = {
           companyName,
           adFileUrl: fileUrl,
           schedule,
-          address,  // Add the address field here
-          createdAt: Timestamp.now(),  // Created at the time of submission
-          expiryDate: new Date(schedule), // Assuming expiry date is the same as schedule
+          address,
+          createdAt: Timestamp.now(),
+          expiryDate: new Date(schedule),
         };
 
-        // Save the ad data to Firestore under the userId path (client_web/{userId}/ads)
         await addDoc(adsRef, newAd);
 
-        // Clear form fields after submission
         setCompanyName("");
         setSelectedFile(null);
         setSchedule("");
-        setAddress(""); // Clear the address field
+        setAddress("");
         alert("Ad successfully uploaded!");
-
       } catch (error) {
         console.error("Error uploading ad:", error);
         alert("Failed to upload advertisement. Please try again.");
+      } finally {
+        setIsLoading(false); // Stop loading
       }
     } else {
       alert("Please fill all required fields.");
@@ -83,7 +80,6 @@ export default function AdvertisementManagement() {
       <div className="absolute inset-0 bg-cover bg-center z-0" style={{ backgroundImage: "url('../../../../assets/geo.jpg')" }}></div>
       <div className="absolute inset-0 bg-black opacity-70 z-0"></div>
       <div className="relative z-10 p-5">
-        {/* Header */}
         <header className="flex justify-center items-center bg-white text-blue-900 p-5 rounded-lg shadow-md">
           <h1 className="text-2xl font-bold">Advertisement Management</h1>
         </header>
@@ -96,32 +92,43 @@ export default function AdvertisementManagement() {
             value={companyName}
             onChange={(e) => setCompanyName(e.target.value)}
             className="w-full p-3 border border-gray-400 rounded mt-2 text-black"
+            disabled={isLoading}
           />
           <input
             type="file"
             onChange={(e) => setSelectedFile(e.target.files[0])}
             className="w-full p-3 border border-gray-400 rounded mt-2 text-black"
+            disabled={isLoading}
           />
           <input
             type="text"
-            placeholder="Enter Address"  // Address input field
+            placeholder="Enter Address"
             value={address}
-            onChange={(e) => setAddress(e.target.value)}  // Update address on input change
+            onChange={(e) => setAddress(e.target.value)}
             className="w-full p-3 border border-gray-400 rounded mt-2 text-black"
+            disabled={isLoading}
           />
-          {/* Date input without time */}
           <input
             type="date"
             value={schedule}
-            onChange={(e) => setSchedule(e.target.value)}  // Store only the date (no time)
+            onChange={(e) => setSchedule(e.target.value)}
             className="w-full p-3 border border-gray-400 rounded mt-2 text-black"
+            disabled={isLoading}
           />
+
           <button
             onClick={handleSubmitAd}
-            className="w-full mt-4 bg-blue-900 text-white p-3 rounded shadow-md hover:bg-blue-800 transition"
+            className={`w-full mt-4 bg-blue-900 text-white p-3 rounded shadow-md hover:bg-blue-800 transition ${
+              isLoading ? "opacity-70 cursor-not-allowed" : ""
+            }`}
+            disabled={isLoading}
           >
-            Submit Ad
+            {isLoading ? "Uploading..." : "Submit Ad"}
           </button>
+
+          {isLoading && (
+            <p className="text-center text-sm text-blue-900 mt-2">Please wait, your ad is being uploaded...</p>
+          )}
         </div>
       </div>
     </div>

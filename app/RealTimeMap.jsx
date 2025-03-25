@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../firebaseConfig"; // Source Firestore (AdvertisementManagement)
 import { tabletDb } from "../firebaseTabletConfig"; // Target Firestore (tablet-service)
-import { collection, getDocs, doc, getDoc, updateDoc } from "firebase/firestore";
+import { collection, doc, onSnapshot } from "firebase/firestore";
 
 const RealTimeMap = () => {
   const [LeafletComponents, setLeafletComponents] = useState(null);
@@ -58,151 +58,85 @@ const RealTimeMap = () => {
     }
   }, []);
 
-  // Fetch geofences
+  // 🔴 Real-time geofence listener
   useEffect(() => {
-    const fetchGeofences = async () => {
-      const geofenceRef = collection(db, "ads");
-      const snapshot = await getDocs(geofenceRef);
+    const unsubscribe = onSnapshot(collection(db, "ads"), (snapshot) => {
       const fetchedGeofences = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
       setGeofences(fetchedGeofences);
-    };
-    fetchGeofences();
-  }, []);
-
-  // Fetch ALL taxis from tabletDb with company -> devices -> location
-  useEffect(() => {
-    const fetchTaxis = async () => {
-      const companiesRef = collection(tabletDb, "taxiCompany");
-      const companiesSnap = await getDocs(companiesRef);
-
-      let allTaxis = [];
-
-      for (const companyDoc of companiesSnap.docs) {
-        const companyId = companyDoc.id;
-        const devicesRef = collection(tabletDb, `taxiCompany/${companyId}/devices`);
-        const devicesSnap = await getDocs(devicesRef);
-
-        const taxiPromises = devicesSnap.docs.map(async (deviceDoc) => {
-          const deviceId = deviceDoc.id;
-          const locationRef = doc(tabletDb, `taxiCompany/${companyId}/devices/${deviceId}/location/device_location`);
-          const locationSnap = await getDoc(locationRef);
-
-          if (locationSnap.exists()) {
-            const loc = locationSnap.data();
-            return {
-              id: deviceId,
-              companyId: companyId,
-              latitude: loc.latitude,
-              longitude: loc.longitude,
-              locationRef,
-              geofenceAreaName: loc.geofenceAreaName || "",
-              geofenceTriggered: loc.geofenceTriggered || false,
-            };
-          }
-          return null;
-        });
-
-        const resolvedTaxis = await Promise.all(taxiPromises);
-        allTaxis = [...allTaxis, ...resolvedTaxis.filter(Boolean)];
-      }
-
-      setTaxis(allTaxis);
-    };
-
-    fetchTaxis();
-  }, []);
-
-  // Geofence detection logic with reset
-  useEffect(() => {
-    if (!LeafletComponents || geofences.length === 0 || taxis.length === 0) return;
-
-    taxis.forEach(async (taxi) => {
-      let insideGeofence = false;
-      let detectedArea = "";
-      let videoUrl = ""; // Default to no video
-
-      console.log(`Checking Taxi ${taxi.id} at lat: ${taxi.latitude}, lng: ${taxi.longitude}`);
-
-      // Check if the taxi is inside any of the geofences
-      for (const geo of geofences) {
-        const distance = LeafletComponents.L
-          .latLng(taxi.latitude, taxi.longitude)
-          .distanceTo([geo.latitude, geo.longitude]);
-
-        console.log(`Checking geofence: ${geo.companyName} at lat: ${geo.latitude}, lng: ${geo.longitude}, distance: ${distance}`);
-
-        // If taxi is inside the geofence
-        if (distance <= (geo.radius || 500)) {
-          console.log(`Taxi ${taxi.id} is inside geofence: ${geo.companyName}`);
-          insideGeofence = true;
-          detectedArea = geo.companyName;
-
-          // Fetch adFileUrl from the `ads` collection in Firestore based on geofence area
-          const adDocRef = doc(db, "ads", geo.id);
-          const adDocSnap = await getDoc(adDocRef);
-
-          if (adDocSnap.exists()) {
-            videoUrl = adDocSnap.data().adFileUrl || ""; // Get the adFileUrl from the geofence's ad
-            console.log(`Ad File URL: ${videoUrl}`); // Log the fetched video URL
-          } else {
-            console.log(`No ad found for geofence ${geo.companyName}`);
-          }
-          break; // Stop at the first matched geofence
-        }
-      }
-
-      // Log when taxi enters the geofence
-      if (insideGeofence && (!taxi.geofenceTriggered || taxi.geofenceAreaName !== detectedArea)) {
-        console.log(`✅ Taxi ${taxi.id} ENTERED geofence "${detectedArea}"`); // Log message on entry
-
-        // Update Firestore if state differs
-        await updateDoc(taxi.locationRef, {
-          geofenceTriggered: true,
-          geofenceAreaName: detectedArea,
-        });
-
-        // If geofence is triggered, update the videoUrl in tablet-service Firestore
-        if (videoUrl) {
-          try {
-            const locationRef = doc(tabletDb, `taxiCompany/${taxi.companyId}/devices/${taxi.id}/location/device_location`);
-            await updateDoc(locationRef, {
-              videoUrl: videoUrl,
-            });
-            console.log(`✅ Video URL set for Taxi ${taxi.id}`);
-          } catch (error) {
-            console.error("Error updating video URL in tablet-service Firestore:", error);
-          }
-        } else {
-          console.log("No video URL to set.");
-        }
-      } else if (!insideGeofence && taxi.geofenceTriggered) {
-        console.log(`🚪 Taxi ${taxi.id} EXITED all geofences`); // Log when taxi exits the geofence
-
-        // Update Firestore if taxi exits geofence
-        await updateDoc(taxi.locationRef, {
-          geofenceTriggered: false,
-          geofenceAreaName: "",
-        });
-
-        // Clear the videoUrl when taxi exits the geofence
-        const locationRef = doc(tabletDb, `taxiCompany/${taxi.companyId}/devices/${taxi.id}/location/device_location`);
-        await updateDoc(locationRef, {
-          videoUrl: "",
-        });
-        console.log(`🚪 Video URL cleared for Taxi ${taxi.id}`);
-      }
     });
-  }, [taxis, geofences, LeafletComponents]);
+    return () => unsubscribe();
+  }, []);
+
+  // 🔵 Real-time taxi listener for each company and device
+  useEffect(() => {
+    const unsubscribers = [];
+
+    const setupListeners = async () => {
+      const companiesSnap = await onSnapshot(collection(tabletDb, "taxiCompany"), (companies) => {
+        companies.docs.forEach((companyDoc) => {
+          const companyId = companyDoc.id;
+          const devicesRef = collection(tabletDb, `taxiCompany/${companyId}/devices`);
+
+          const deviceListener = onSnapshot(devicesRef, (devicesSnap) => {
+            const taxiPromises = devicesSnap.docs.map(async (deviceDoc) => {
+              const deviceId = deviceDoc.id;
+              const basePath = `taxiCompany/${companyId}/devices/${deviceId}/location`;
+
+              const locationRef = doc(tabletDb, `${basePath}/device_location`);
+              const clientsDataRef = doc(tabletDb, `${basePath}/clients_data`);
+
+              const unsubLoc = onSnapshot(locationRef, (locSnap) => {
+                const loc = locSnap.data();
+                if (loc) {
+                  onSnapshot(clientsDataRef, (clientSnap) => {
+                    const clientData = clientSnap.data();
+                    if (clientData) {
+                      setTaxis((prev) => {
+                        const filtered = prev.filter((t) => t.id !== deviceId);
+                        return [
+                          ...filtered,
+                          {
+                            id: deviceId,
+                            companyId: companyId,
+                            latitude: loc.latitude,
+                            longitude: loc.longitude,
+                            clientsDataRef,
+                            geofenceAreaName: clientData.geofenceAreaName || "",
+                            geofenceTriggered: clientData.geofenceTriggered || false,
+                            videoUrl: clientData.videoUrl || "",
+                          },
+                        ];
+                      });
+                    }
+                  });
+                }
+              });
+
+              unsubscribers.push(unsubLoc);
+            });
+          });
+
+          unsubscribers.push(deviceListener);
+        });
+      });
+
+      unsubscribers.push(companiesSnap);
+    };
+
+    setupListeners();
+
+    // Clean up listeners on unmount
+    return () => unsubscribers.forEach((unsub) => unsub());
+  }, []);
 
   if (!LeafletComponents) {
     return <p>Loading map...</p>;
   }
 
   const { MapContainer, TileLayer, Marker, Popup, Circle, MapUpdater, carIcon, pinIcon } = LeafletComponents;
-
   const centerPosition = taxis[0] ? [taxis[0].latitude, taxis[0].longitude] : [14.5995, 120.9842]; // fallback to Manila
 
   return (
