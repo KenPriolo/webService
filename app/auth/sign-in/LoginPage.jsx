@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "../../../../firebaseConfig";
+import { auth, db } from "../../../firebaseConfig";
 import { useState } from "react";
 import { doc, getDoc } from "firebase/firestore"; // Firestore functions
 
@@ -16,26 +16,27 @@ const LoginPage = () => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Fetch user data from Firestore using their email in the 'accountAdmin' collection
-      const userRef = doc(db, "accountAdmin", email); // Use email as the document ID
+      // Fetch user data from Firestore using their email in the 'accountBranch' collection
+      const userRef = doc(db, "accounts", email); // Use email as the document ID
       const userDoc = await getDoc(userRef);
 
       if (userDoc.exists()) {
         const userData = userDoc.data();
         const role = userData.role;
 
-        if (role === "admin") {
-          // If the user has an admin role, navigate to the admin dashboard
-          navigate("/admin-dashboard");
+        // Check user role and redirect accordingly
+        if (role === "client") {
+          navigate("/branch-dashboard"); // Redirect to branch dashboard for clients
+        } else if (role === "admin") {
+          navigate("/admin-dashboard"); // Redirect to admin dashboard for admins
         } else {
-          // If the user does not have admin access, show an error message
-          setError("You do not have admin access.");
+          setError("Invalid role, access denied.");
         }
       } else {
-        setError("Not an admin account.");
+        setError("Not an account for client.");
       }
     } catch (err) {
-      setError("Error logging in. Please try again.");
+      setError("Invalid account. Please try again.");
     }
   };
 
@@ -69,11 +70,11 @@ const LoginPage = () => {
               required
             />
           </div>
-          
+
           <div className="flex justify-between">
             <button
               type="button"
-              onClick={() => navigate("/admin-login/forget-password")}
+              onClick={() => navigate("/login/forget-password")}
               className="text-blue-600 text-sm"
             >
               Forgot password?
@@ -84,11 +85,12 @@ const LoginPage = () => {
         <div className="space-y-4 mt-4">
           <div className="flex justify-between">
             <button onClick={() => navigate("/")} className="bg-blue-900 text-white px-6 py-2 rounded-md">Home</button>
-            <button onClick={handleLogin} className="bg-blue-900 text-white px-6 py-2 rounded-md">Sign In</button>
+            <button type="submit" className="bg-blue-900 text-white px-6 py-2 rounded-md">Sign In</button>
           </div>
+
           <p className="text-center text-blue-900 text-sm">
             New to AuAdsTri?{" "}
-            <button onClick={() => navigate("/admin-login/signup")} className="underline">Join now</button>
+            <button onClick={() => navigate("/login/signup")} className="underline">Join now</button>
           </p>
         </div>
       </form>

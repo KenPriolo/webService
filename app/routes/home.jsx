@@ -22,16 +22,16 @@ export default function Home() {
 
         <div className="flex gap-4 justify-start">
           <button
-            onClick={() => navigate("/admin-login")}
+            // onClick={() => navigate("/login")}
             className="border border-white px-6 py-3 rounded-md hover:bg-white hover:text-black transition"
           >
-            Login to Admin
+            About AuAdsTri
           </button>
           <button
-            onClick={() => navigate("/branch-login")}
+            onClick={() => navigate("/login")}
             className="border border-white px-6 py-3 rounded-md hover:bg-white hover:text-black transition"
           >
-            Login to Client
+            Login your account
           </button>
         </div>
       </div>

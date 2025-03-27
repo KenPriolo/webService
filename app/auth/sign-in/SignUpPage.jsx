@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "../../../../firebaseConfig";
+import { auth, db } from "../../../firebaseConfig";
 import { useState } from "react";
 import { doc, setDoc } from "firebase/firestore"; // Firestore functions
 
@@ -26,7 +26,7 @@ const SignUpPage = () => {
         role: "client", // Set role as 'admin'
       });
 
-      navigate("/branch-login"); // Redirect to login after successful signup
+      navigate("/login"); // Redirect to login after successful signup
     } catch (err) {
       setError("Error signing up. Please try again.");
     }
@@ -92,7 +92,7 @@ const SignUpPage = () => {
           </div>
           <p className="text-center text-blue-900 text-sm">
             Already have an account?{" "}
-            <button onClick={() => navigate("/branch-login")} className="underline">Log in</button>
+            <button onClick={() => navigate("/login")} className="underline">Log in</button>
           </p>
         </div>
       </form>

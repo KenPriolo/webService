@@ -1,10 +1,29 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Home, BarChart, MapPin, Car, Users, MonitorSmartphone, Settings, LogOut, Upload, Calendar, Calculator, ChevronsLeft, ChevronsRight  } from "lucide-react";
 import { useSidebar } from "../components/ui/SidebarContext";
+import { auth, db } from "../../../firebaseConfig"; // Update path if needed
+import { doc, getDoc } from "firebase/firestore";
 
 export default function Sidebar() {
   const navigate = useNavigate();
   const { isCollapsed, setIsCollapsed } = useSidebar();
+  const [fullName, setFullName] = useState("");
+
+  useEffect(() => {
+    const fetchUserFullName = async () => {
+      const user = auth.currentUser;
+      if (user) {
+        const docRef = doc(db, "accounts", user.email);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setFullName(docSnap.data().fullName || "");
+        }
+      }
+    };
+
+    fetchUserFullName();
+  }, []);
 
   const handleNavigation = (page) => {
     const routes = {
@@ -25,8 +44,12 @@ export default function Sidebar() {
 
   return (
     <div className={`h-screen ${isCollapsed ? "w-20" : "w-64"} bg-gradient-to-b from-white to-gray-100 text-blue-900 flex flex-col flex-shrink-0 border-r border-gray-200 shadow-lg transition-all duration-300`}>
-      {/* Toggle Button */}
-      <div className="flex justify-end p-3">
+      
+      {/* Header Row: Toggle + Name */}
+      <div className="flex justify-between items-center p-3">
+        {!isCollapsed && (
+          <span className="text-sm font-medium text-blue-900 truncate max-w-[200px]">Admin {fullName}</span>
+        )}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="bg-blue-900 text-white p-2 rounded hover:bg-blue-800 transition"
@@ -82,7 +105,7 @@ export default function Sidebar() {
         <button
           title={isCollapsed ? "Logout" : ""}
           className={`flex ${isCollapsed ? "justify-center" : "justify-start gap-3"} items-center px-3 py-3 w-full bg-blue-900 hover:bg-blue-800 text-white rounded-md text-sm font-medium`}
-          onClick={() => navigate("/admin-login")}
+          onClick={() => navigate("/login")}
         >
           <LogOut size={18} />
           {!isCollapsed && "Logout"}

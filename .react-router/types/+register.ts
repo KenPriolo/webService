@@ -8,16 +8,11 @@ declare module "react-router" {
 
 type Params = {
   "/": {};
-  "/admin-login": {};
-  "/admin-login/signup": {};
-  "/admin-login/forget-password": {};
-  "/admin-signup": {};
-  "/admin-forget-password": {};
-  "/branch-login": {};
-  "/branch-login/signup": {};
-  "/branch-login/forget-password": {};
-  "/branch-signup": {};
-  "/branch-forget-password": {};
+  "/login": {};
+  "/login/signup": {};
+  "/login/forget-password": {};
+  "/signup": {};
+  "/forget-password": {};
   "/branch-dashboard": {};
   "/branch-dashboard/branch-ticketing-system": {};
   "/branch-dashboard/branch-advertisement-management": {};

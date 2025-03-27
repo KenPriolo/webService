@@ -3,27 +3,16 @@ import { type RouteConfig, index, route } from "@react-router/dev/routes";
 export default [
   index("routes/home.jsx"),
 
-  // ADMIN AUTH ROUTES
-  route("/admin-login", "appAdmin/auth/AuthLayout.jsx", [
-    index("appAdmin/auth/sign-In/LoginPage.jsx"),
-    route("signup", "appAdmin/auth/sign-In/SignUpPage.jsx"),
-    route("forget-password", "appAdmin/auth/forgetpassword/ResetPassword.jsx"),
+    // ADMIN AUTH ROUTES
+  route("/login", "auth/AuthLayout.jsx", [
+    index("auth/sign-In/LoginPage.jsx"),
+    route("signup", "auth/sign-In/SignUpPage.jsx"),
+    route("forget-password", "auth/forgetpassword/ResetPassword.jsx"),
   ]),
 
   // Redirects using components
-  route("/admin-signup", "appAdmin/redirects/AdminSignupRedirect.jsx"),
-  route("/admin-forget-password", "appAdmin/redirects/AdminForgetPasswordRedirect.jsx"),
-
-  // BRANCH AUTH (with AuthLayout as parent route)
-  route("/branch-login", "appBranch/auth/AuthLayout.jsx", [
-    index("appBranch/auth/sign-In/LoginPage.jsx"),
-    route("signup", "appBranch/auth/sign-In/SignUpPage.jsx"),
-    route("forget-password", "appBranch/auth/forgetpassword/ResetPassword.jsx"),
-  ]),
-
-  // Redirects using components
-  route("/branch-signup", "appBranch/redirects/BranchSignupRedirect.jsx"),
-  route("/branch-forget-password", "appBranch/redirects/BranchForgetPasswordRedirect.jsx"),
+  route("/signup", "redirects/SignupRedirect.jsx"),
+  route("/forget-password", "redirects/ForgetPasswordRedirect.jsx"),
 
   // BRANCH dashboard
   route("/branch-dashboard", "appBranch/dashboard/DashboardLayout.jsx", [

@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "../../../../firebaseConfig";
+import { auth } from "../../../firebaseConfig";
 import { useState } from "react";
 
 const ForgotPassword = () => {
@@ -16,7 +16,7 @@ const ForgotPassword = () => {
     try {
       await sendPasswordResetEmail(auth, email);
       setMessage("Password reset email sent! Check your inbox.");
-      setTimeout(() => navigate("/admin-login"), 4000); // Navigate to login after 4 seconds
+      setTimeout(() => navigate("/login"), 4000); // Navigate to login after 4 seconds
     } catch (err) {
       setError("Failed to send reset email.");
     }
@@ -52,7 +52,7 @@ const ForgotPassword = () => {
 
           <p className="text-center text-blue-900 text-sm">
             Remember your password?{" "}
-            <button type="button" onClick={() => navigate("/admin-login")} className="underline">Log in</button>
+            <button type="button" onClick={() => navigate("/login")} className="underline">Log in</button>
           </p>
         </div>
       </form>
