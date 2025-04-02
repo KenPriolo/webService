@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { CalendarCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../../../firebaseConfig";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
 
 export default function ScheduleDuration() {
   const navigate = useNavigate();
@@ -34,6 +34,41 @@ export default function ScheduleDuration() {
   const handleRowClick = (schedule) => {
     setSelectedSchedule(schedule);
     setNewDuration(schedule.duration);
+  };
+
+  const handleDurationUpdate = async () => {
+    // Calculate the new expiry date based on the new duration (in days)
+    const newDurationInDays = parseInt(newDuration);
+    if (isNaN(newDurationInDays) || newDurationInDays <= 0) {
+      alert("Please enter a valid duration.");
+      return;
+    }
+
+    const currentExpiryDate = selectedSchedule.expiryDate
+      ? new Date(selectedSchedule.expiryDate.seconds * 1000)
+      : new Date(selectedSchedule.date); // Fallback to the scheduled date if no expiryDate
+
+    // Calculate the new expiry date
+    const newExpiryDate = new Date(currentExpiryDate.getTime() + newDurationInDays * 24 * 60 * 60 * 1000);
+
+    // Update the Firestore document
+    const adRef = doc(db, "ads", selectedSchedule.id);
+    await updateDoc(adRef, {
+      expiryDate: newExpiryDate,
+    });
+
+    // Update the local state with the new duration and expiry
+    setSelectedSchedule({
+      ...selectedSchedule,
+      expiry: newExpiryDate.toLocaleDateString(),
+    });
+    setSchedules(schedules.map(schedule =>
+      schedule.id === selectedSchedule.id
+        ? { ...schedule, expiry: newExpiryDate.toLocaleDateString(), duration: `${newDurationInDays} days` }
+        : schedule
+    ));
+    setNewDuration(""); // Clear the input
+    alert("Duration updated successfully!");
   };
 
   const filteredSchedules = schedules.filter(schedule =>
@@ -133,7 +168,7 @@ export default function ScheduleDuration() {
           />
 
           <button 
-            onClick={() => setSelectedSchedule(null)} 
+            onClick={handleDurationUpdate}
             className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition cursor-pointer w-full"
           >
             Update Duration

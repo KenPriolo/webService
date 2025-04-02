@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../../../firebaseConfig";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc, deleteDoc } from "firebase/firestore";
 
 export default function UploadsPage() {
   const navigate = useNavigate();
@@ -41,10 +41,20 @@ export default function UploadsPage() {
     setSelectedAd(ad);
   };
 
-  const handleDeleteAd = (adId) => {
+  const handleDeleteAd = async (adId) => {
     const adToDelete = ads.find((ad) => ad.id === adId);
+
+    // Remove the ad from the state
     setArchivedAds([...archivedAds, adToDelete]);
     setAds(ads.filter((ad) => ad.id !== adId));
+
+    try {
+      // Delete the ad from the Firestore database
+      const adRef = doc(db, "ads", adId);
+      await deleteDoc(adRef);
+    } catch (error) {
+      console.error("Error deleting ad from Firestore: ", error);
+    }
   };
 
   return (

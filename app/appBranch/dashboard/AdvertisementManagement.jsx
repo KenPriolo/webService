@@ -47,7 +47,7 @@ export default function AdvertisementManagement() {
         const uploadData = await uploadResponse.json();
         const fileUrl = uploadData.secure_url;
 
-        const adsRef = collection(db, "client_web", userId, "ads");
+        const adsRef = collection(db, "client_web", userId, "ads_client");
         const newAd = {
           companyName,
           adFileUrl: fileUrl,
@@ -102,7 +102,7 @@ export default function AdvertisementManagement() {
           />
           <input
             type="text"
-            placeholder="Enter Address"
+            placeholder="Business Address"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             className="w-full p-3 border border-gray-400 rounded mt-2 text-black"

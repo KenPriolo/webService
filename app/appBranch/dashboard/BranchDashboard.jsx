@@ -24,11 +24,16 @@ export default function BranchDashboard() {
 
   useEffect(() => {
     if (user) {
-      const adsRef = collection(db, `client_web/${user.uid}/ads`);
+      // Changed from 'ads' to 'ads_client' collection
+      const adsRef = collection(db, `client_web/${user.uid}/ads_client`);
       const unsubscribe = onSnapshot(adsRef, (snapshot) => {
         const fetchedAds = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
+          // Ensure all required fields have defaults
+          companyName: doc.data().companyName || 'No company name',
+          address: doc.data().address || 'No address provided',
+          done: doc.data().done || false
         }));
         setAds(fetchedAds);
       });
@@ -49,9 +54,11 @@ export default function BranchDashboard() {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">
-          {[{ title: "Uploaded Ads", value: uploadedAdsCount, icon: <Video size={32} /> },
+          {[
+            { title: "Uploaded Ads", value: uploadedAdsCount, icon: <Video size={32} /> },
             { title: "Pending Ads", value: pendingCount, icon: <Upload size={32} /> },
-            { title: "Total Clicks", value: "8,500", icon: <BarChart size={32} /> }].map((item, index) => (
+            { title: "Total Clicks", value: "8,500", icon: <BarChart size={32} /> }
+          ].map((item, index) => (
             <Card key={index} className="bg-white p-5 rounded-lg shadow-md flex justify-between items-center hover:-translate-y-1">
               <CardContent>
                 <div>
@@ -78,7 +85,7 @@ export default function BranchDashboard() {
           </ResponsiveContainer>
         </div>
 
-        {/* 🔵 New Feature: Recent Uploads */}
+        {/* Recent Uploads Section */}
         <div className="bg-white p-5 rounded-lg shadow-md mt-5">
           <h3 className="text-lg font-semibold mb-3 text-blue-900">Recent Ads Overview</h3>
           {ads.length === 0 ? (
@@ -88,11 +95,18 @@ export default function BranchDashboard() {
               {ads.slice(0, 5).map((ad) => (
                 <li key={ad.id} className="flex justify-between items-center border-b py-2">
                   <div>
-                    <p className="font-medium text-black">{ad.companyName || "Unnamed Ad"}</p>
+                    <p className="font-medium text-black">{ad.companyName}</p>
                     <small className="text-gray-600">{ad.address}</small>
+                    {ad.adFileUrl && (
+                      <small className="block text-blue-600 truncate max-w-xs">
+                        <a href={ad.adFileUrl} target="_blank" rel="noopener noreferrer">
+                          View Ad
+                        </a>
+                      </small>
+                    )}
                   </div>
                   <span className={`px-2 py-1 text-xs rounded ${ad.done ? 'bg-green-500' : 'bg-yellow-500'} text-white`}>
-                    {ad.done ? 'Done' : 'Pending'}
+                    {ad.done ? 'Approved' : 'Pending'}
                   </span>
                 </li>
               ))}
