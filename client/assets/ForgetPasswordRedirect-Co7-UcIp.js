@@ -1,0 +1,1 @@
+import{w as o}from"./with-props-DbFBUsUC.js";import{l as r,N as t}from"./chunk-K6CSEXPM-DdwNiGzb.js";const i=o(function(){return r.jsx(t,{to:"/admin-login/forget-password",replace:!0})});export{i as default};

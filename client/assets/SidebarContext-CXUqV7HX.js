@@ -1,0 +1,1 @@
+import{r as e,l as a}from"./chunk-K6CSEXPM-DdwNiGzb.js";const t=e.createContext();function i({children:r}){const[s,o]=e.useState(!1);return a.jsx(t.Provider,{value:{isCollapsed:s,setIsCollapsed:o},children:r})}function u(){return e.useContext(t)}export{i as S,u};
