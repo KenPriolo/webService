@@ -11,8 +11,8 @@ export default function AdvertisementManagement() {
   const [expiryDate, setExpiryDate] = useState("");
   const [pureAddress, setPureAddress] = useState("");
   const [geocodedAddress, setGeocodedAddress] = useState("");
-  const [latitude, setLatitude] = useState(37.7749);
-  const [longitude, setLongitude] = useState(-122.4194);
+  const [latitude, setLatitude] = useState(14.5995);
+  const [longitude, setLongitude] = useState(120.9842);
   const [map, setMap] = useState(null);
   const [leafletReady, setLeafletReady] = useState(false);
   const [MapContainer, setMapContainer] = useState(null);
@@ -142,8 +142,8 @@ export default function AdvertisementManagement() {
       setExpiryDate("");
       setPureAddress("");
       setGeocodedAddress("");
-      setLatitude(37.7749);
-      setLongitude(-122.4194);
+      setLatitude(14.5995);
+      setLongitude(120.9842);
       alert("Ad successfully uploaded and fields cleared!");
     } catch (error) {
       console.error("❌ Error submitting ad:", error);

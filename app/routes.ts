@@ -35,7 +35,7 @@ export default [
     route("admin-uploads", "appAdmin/dashboard/UploadsPage.jsx"),
     route("admin-locations", "appAdmin/dashboard/LocationsPage.jsx"),
     route("admin-schedule-duration", "appAdmin/dashboard/ScheduleDuration.jsx"),
-    route("admin-ctr-conversions", "appAdmin/dashboard/CTRConversions.jsx"),
+    route("admin-views-calculation", "appAdmin/dashboard/CTRConversions.jsx"),
     route("admin-settings", "appAdmin/dashboard/SettingsPage.jsx"),
   ]),
 ] satisfies RouteConfig;

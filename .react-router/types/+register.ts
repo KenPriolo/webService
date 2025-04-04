@@ -28,6 +28,6 @@ type Params = {
   "/admin-dashboard/admin-uploads": {};
   "/admin-dashboard/admin-locations": {};
   "/admin-dashboard/admin-schedule-duration": {};
-  "/admin-dashboard/admin-ctr-conversions": {};
+  "/admin-dashboard/admin-views-calculation": {};
   "/admin-dashboard/admin-settings": {};
 };

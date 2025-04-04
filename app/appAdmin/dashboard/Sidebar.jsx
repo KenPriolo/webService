@@ -34,7 +34,7 @@ export default function Sidebar() {
       "Uploads": "/admin-dashboard/admin-uploads",
       "Locations": "/admin-dashboard/admin-locations",
       "Schedule & Duration": "/admin-dashboard/admin-schedule-duration",
-      "CTR & Conversions": "/admin-dashboard/admin-ctr-conversions",
+      "Views Calculation": "/admin-dashboard/admin-views-calculation",
       "Ticketing System": "/admin-dashboard/admin-ticketing-system",
       "Settings": "/admin-dashboard/admin-settings",
     };
@@ -74,9 +74,9 @@ export default function Sidebar() {
           { label: "Taxi Fleet Management", icon: <Car size={20} /> },
           { label: "Analytics & Reporting", icon: <BarChart size={20} /> },
           { label: "Uploads", icon: <Upload size={20} /> },
-          { label: "Locations", icon: <MapPin size={20} /> },
+          { label: "Locations", icon: <MapPin size={20} /> },   
           { label: "Schedule & Duration", icon: <Calendar size={20} /> },
-          { label: "CTR & Conversions", icon: <Calculator size={20} /> },
+          { label: "Views Calculation", icon: <Calculator size={20} /> },
           { label: "Ticketing System", icon: <Users size={20} /> },
         ].map((item, index) => (
           <button
