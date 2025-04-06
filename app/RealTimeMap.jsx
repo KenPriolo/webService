@@ -92,20 +92,20 @@ const RealTimeMap = () => {
   // Taxi tracking with geofence detection
   useEffect(() => {
     const unsubscribers = [];
-  
+
     const setupListeners = async () => {
       const companiesSnap = onSnapshot(collection(tabletDb, "taxiCompany"), (companies) => {
         companies.docs.forEach((companyDoc) => {
           const companyId = companyDoc.id;
           const devicesRef = collection(tabletDb, `taxiCompany/${companyId}/devices`);
-  
+
           const deviceListener = onSnapshot(devicesRef, (devicesSnap) => {
             devicesSnap.docs.forEach((deviceDoc) => {
               const deviceId = deviceDoc.id;
               const basePath = `taxiCompany/${companyId}/devices/${deviceId}/location`;
               const locationRef = doc(tabletDb, `${basePath}/device_location`);
               const clientsDataRef = doc(tabletDb, `${basePath}/clients_data`);
-  
+
               // Initialize clients_data document if it doesn't exist
               const initializeClientData = async () => {
                 try {
@@ -118,21 +118,21 @@ const RealTimeMap = () => {
                   console.error("Error initializing clients_data:", error);
                 }
               };
-  
+
               const unsubLoc = onSnapshot(locationRef, (locSnap) => {
                 const loc = locSnap.data();
                 if (!loc) return;
-  
+
                 const unsubClient = onSnapshot(clientsDataRef, (clientSnap) => {
                   if (!clientSnap.exists()) {
                     initializeClientData();
                     return;
                   }
-  
+
                   const clientData = clientSnap.data() || {};
                   let closestGeofence = null;
                   let minDistance = Infinity;
-  
+
                   geofences.forEach((geo) => {
                     const distance = calculateDistance(
                       loc.latitude,
@@ -145,18 +145,18 @@ const RealTimeMap = () => {
                       closestGeofence = geo;
                     }
                   });
-  
+
                   const isInside = Boolean(closestGeofence && minDistance <= 500); // Check if inside geofence
                   const geofenceAreaName = isInside ? closestGeofence.companyName : ""; // Empty string when outside geofence
                   const adFileUrl = isInside ? closestGeofence.adFileUrl : "";
-  
+
                   // Update taxi state
                   setTaxis((prev) => {
                     const existing = prev.find((t) => t.id === deviceId);
                     if (existing && existing.geofenceAreaName === geofenceAreaName && existing.geofenceTriggered === isInside) {
                       return prev;
                     }
-  
+
                     return [
                       ...prev.filter((t) => t.id !== deviceId),
                       {
@@ -170,7 +170,7 @@ const RealTimeMap = () => {
                       },
                     ];
                   });
-  
+
                   // Update Firestore if values changed
                   if (
                     clientData.geofenceAreaName !== geofenceAreaName ||
@@ -186,7 +186,7 @@ const RealTimeMap = () => {
                       console.error("Error updating clients_data:", error);
                     });
                   }
-  
+
                   if (isInside) {
                     if (!currentAd || currentAd.companyName !== closestGeofence.companyName) {
                       setCurrentAd({ companyName: closestGeofence.companyName, videoUrl: adFileUrl });
@@ -198,25 +198,24 @@ const RealTimeMap = () => {
                     setCurrentAd(null);
                   }
                 });
-  
+
                 unsubscribers.push(unsubClient);
               });
-  
+
               unsubscribers.push(unsubLoc);
             });
           });
-  
+
           unsubscribers.push(deviceListener);
         });
       });
-  
+
       unsubscribers.push(companiesSnap);
     };
-  
+
     setupListeners();
     return () => unsubscribers.forEach((unsub) => unsub());
   }, [geofences, currentAd, videoEnded]);
-  
 
   if (!LeafletComponents) {
     return <div className="loading-screen">Loading map...</div>;
