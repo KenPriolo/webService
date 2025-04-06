@@ -1,13 +1,20 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, BarChart, Bar
+} from "recharts";
 import { useEffect, useState } from "react";
 import { db } from "../../../firebaseConfig";
-import { collection, getDocs } from "firebase/firestore";
+import {
+  collection, getDocs, updateDoc, doc
+} from "firebase/firestore";
+import moment from "moment";
 
 export default function AnalyticsAndReporting() {
   const [revenueData, setRevenueData] = useState([]);
   const [weeklyTrends, setWeeklyTrends] = useState([]);
   const [yearlyTrends, setYearlyTrends] = useState([]);
   const [engagementTrends, setEngagementTrends] = useState([]);
+  const [cashouts, setCashouts] = useState([]);
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -15,7 +22,7 @@ export default function AnalyticsAndReporting() {
       const snapshot = await getDocs(adsRef);
       const ads = snapshot.docs.map(doc => doc.data());
 
-      // Example static transformation (you can replace this with dynamic logic based on your data)
+      // Example data, replace with your real logic
       setRevenueData([
         { name: "Jan", revenue: 12000 },
         { name: "Feb", revenue: 15000 },
@@ -49,8 +56,31 @@ export default function AnalyticsAndReporting() {
       ]);
     };
 
+    const fetchCashouts = async () => {
+      const cashoutsRef = collection(db, "cashouts");
+      const snapshot = await getDocs(cashoutsRef);
+      const list = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setCashouts(list);
+    };
+
     fetchAnalytics();
+    fetchCashouts();
   }, []);
+
+  const updateCashoutStatus = async (id, newStatus) => {
+    try {
+      const ref = doc(db, "cashouts", id);
+      await updateDoc(ref, { status: newStatus });
+      setCashouts(prev =>
+        prev.map(c => (c.id === id ? { ...c, status: newStatus } : c))
+      );
+    } catch (error) {
+      console.error("Failed to update cashout:", error);
+    }
+  };
 
   return (
     <div className="bg-gray-100 min-h-screen p-5">
@@ -58,10 +88,21 @@ export default function AnalyticsAndReporting() {
         <h1 className="text-2xl font-bold text-white">Analytics & Reporting</h1>
       </header>
 
-      {[{ title: "Engagement Trends", data: engagementTrends, dataKey1: "views", dataKey2: "clicks", color1: "#4f46e5", color2: "#16a34a" },
-        { title: "Weekly Revenue Trends", data: weeklyTrends, dataKey1: "revenue", color1: "#ff9800" },
-        { title: "Monthly Revenue Reports", data: revenueData, dataKey1: "revenue", chartType: "Bar", color1: "#4f46e5" },
-        { title: "Yearly Revenue Trends", data: yearlyTrends, dataKey1: "revenue", chartType: "Bar", color1: "#2196f3" }].map((chart, index) => (
+      {/* Charts Section */}
+      {[{
+        title: "Engagement Trends", data: engagementTrends,
+        dataKey1: "views", dataKey2: "clicks",
+        color1: "#4f46e5", color2: "#16a34a"
+      }, {
+        title: "Weekly Revenue Trends", data: weeklyTrends,
+        dataKey1: "revenue", color1: "#ff9800"
+      }, {
+        title: "Monthly Revenue Reports", data: revenueData,
+        dataKey1: "revenue", chartType: "Bar", color1: "#4f46e5"
+      }, {
+        title: "Yearly Revenue Trends", data: yearlyTrends,
+        dataKey1: "revenue", chartType: "Bar", color1: "#2196f3"
+      }].map((chart, index) => (
         <div key={index} className="bg-white p-6 rounded-lg shadow-md mt-6 border border-gray-300">
           <h2 className="text-2xl font-semibold text-black mb-4 text-center">{chart.title}</h2>
           <ResponsiveContainer width="100%" height={320}>
@@ -86,6 +127,56 @@ export default function AnalyticsAndReporting() {
           </ResponsiveContainer>
         </div>
       ))}
+
+      {/* Cashout Approval Table */}
+      <div className="bg-white p-6 rounded-lg shadow-md mt-6 border border-gray-300">
+        <h2 className="text-2xl font-semibold text-black mb-4 text-center">Cashout Requests</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm text-left">
+            <thead>
+              <tr className="bg-gray-200 text-gray-600">
+                <th className="px-4 py-2">User</th>
+                <th className="px-4 py-2">Gcash #</th>
+                <th className="px-4 py-2">Amount</th>
+                <th className="px-4 py-2">Status</th>
+                <th className="px-4 py-2">Date</th>
+                <th className="px-4 py-2 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {cashouts.map((c) => (
+                <tr key={c.id} className="border-b text-black">
+                  <td className="px-4 py-2">{c.email || "Unknown"}</td>
+                  <td className="px-4 py-2">{c.gcashNumber}</td>
+                  <td className="px-4 py-2">₱{c.amount}</td>
+                  <td className="px-4 py-2 capitalize">{c.status}</td>
+                  <td className="px-4 py-2">{moment(c.timestamp?.toDate?.()).format("LLL")}</td>
+                  <td className="px-4 py-2 text-center space-x-2">
+                    {c.status === "pending" ? (
+                      <>
+                        <button
+                          onClick={() => updateCashoutStatus(c.id, "approved")}
+                          className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => updateCashoutStatus(c.id, "rejected")}
+                          className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                        >
+                          Reject
+                        </button>
+                      </>
+                    ) : (
+                      <span className="italic text-gray-500">No actions</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }

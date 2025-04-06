@@ -2,23 +2,22 @@ import { useState, useEffect } from "react";
 import { CheckCircle, Video, MapPin } from "lucide-react";
 import GoogleMapComponent from "../../RealTimeMap.jsx";
 import { db } from "../../../firebaseConfig";
-import { collectionGroup, onSnapshot, collection, getDocs } from "firebase/firestore";
+import { collection, doc, onSnapshot, getDocs, collectionGroup } from "firebase/firestore";
 
 export default function TaxiFleetManagement() {
   const [taxis, setTaxis] = useState([]);
   const [geofenceCount, setGeofenceCount] = useState(0);
 
   useEffect(() => {
-    // Real-time listener for tabletDevice documents
+    // Real-time listener for all driverDevice documents across all taxi companies
     const unsubTaxis = onSnapshot(
-      collectionGroup(db, "tabletDevice"),
+      collectionGroup(db, "driverDevice"), // Listening for driverDevice docs across all companies
       (snapshot) => {
         const fetchedTaxis = snapshot.docs.map((doc) => {
           const data = doc.data();
           return {
             id: doc.id,
             driverName: data.driverName || "Unknown",
-            assignedTablet: data.assignedTablet || "N/A",
             isOnline: data.isOnline || false,
             pairedAt: data.pairedAt || null,
           };
@@ -38,8 +37,9 @@ export default function TaxiFleetManagement() {
     return () => unsubTaxis();
   }, []);
 
-  const onlineTaxis = taxis.filter((taxi) => taxi.isOnline === true).length;
-  const runningAds = onlineTaxis;
+  // Filter taxis to count only the online ones
+  const onlineTaxis = taxis.filter((taxi) => taxi.isOnline).length;
+  const runningAds = onlineTaxis;  // You can adjust this logic if needed
 
   return (
     <div className="bg-gray-100 min-h-screen p-5">

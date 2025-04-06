@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../../../firebaseConfig";
-import { collection, getDocs, doc, getDoc } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, query, where } from "firebase/firestore";
 
 export default function AdPerformanceDashboard() {
   const navigate = useNavigate();
@@ -26,27 +26,36 @@ export default function AdPerformanceDashboard() {
           totalViews: ad.views || 0,
           todayViews: ad.viewsToday || 0,
           weeklyViews: ad.viewsWeekly || 0,
-          popupsToday: ad.popupsToday || 0,
-          popupsWeekly: ad.popupsWeekly || 0,
           lastUpdated: ad.lastUpdated || "N/A"
         };
       });
       setAdData(adData);
 
-      // 2. Fetch device video data
-      const deviceId = "ABC-123-400"; // Your device ID
-      const companyId = "company_id_1"; // Your company ID
-      
-      const locationRef = doc(db, 
-        `taxiCompany/${companyId}/devices/${deviceId}/location/clients_data`);
-      const locationSnap = await getDoc(locationRef);
-      
-      if (locationSnap.exists()) {
-        const locationData = locationSnap.data();
-        setDeviceVideoUrl(locationData.videoUrl || "");
-      }
+      // 2. Fetch device video data for all devices (dynamically for all users)
+      const companiesRef = collection(db, "taxiCompany"); // Fetch all taxi companies
+      const companiesSnapshot = await getDocs(companiesRef);
+
+      companiesSnapshot.docs.forEach(async (companyDoc) => {
+        const companyId = companyDoc.id;
+        const devicesRef = collection(db, `taxiCompany/${companyId}/devices`); // Fetch devices in the company
+        const devicesSnapshot = await getDocs(devicesRef);
+
+        devicesSnapshot.docs.forEach(async (deviceDoc) => {
+          const deviceId = deviceDoc.id;
+          const locationRef = doc(db, `taxiCompany/${companyId}/devices/${deviceId}/location/clients_data`);
+          const locationSnap = await getDoc(locationRef);
+
+          if (locationSnap.exists()) {
+            const locationData = locationSnap.data();
+            if (locationData.videoUrl) {
+              // Update the device's video URL
+              setDeviceVideoUrl(locationData.videoUrl);
+            }
+          }
+        });
+      });
     };
-    
+
     fetchAllData();
 
     // Load video analytics from localStorage
@@ -57,7 +66,7 @@ export default function AdPerformanceDashboard() {
   }, []);
 
   // Track video play
-  const trackVideoPlay = (companyName, videoUrl) => {
+  const trackVideoPlay = async (companyName, videoUrl) => {
     if (!videoUrl) return;
 
     const updatedAnalytics = [...videoAnalytics];
@@ -82,6 +91,21 @@ export default function AdPerformanceDashboard() {
 
     setVideoAnalytics(updatedAnalytics);
     localStorage.setItem('videoAnalytics', JSON.stringify(updatedAnalytics));
+
+    // Update play count to Firestore
+    const geoRef = collection(db, "ads");
+    const geoSnapshot = await getDocs(geoRef);
+    geoSnapshot.docs.forEach(async (geoDoc) => {
+      const geoData = geoDoc.data();
+      const geoId = geoDoc.id;
+      if (geoData.companyName === companyName) {
+        const adRef = doc(db, "ads", geoId);
+        await updateDoc(adRef, {
+          views: geoData.views + 1, // Update the total views count
+          geofenceAreaName: `${geoData.companyName} - Views: ${updatedAnalytics[existingIndex].playCount}`, // Dynamically update geofenceAreaName with the play count
+        });
+      }
+    });
   };
 
   const filteredData = adData.filter(data => 
@@ -123,7 +147,6 @@ export default function AdPerformanceDashboard() {
               <th className="p-3 text-left">Total Views</th>
               <th className="p-3 text-left">Today's Views</th>
               <th className="p-3 text-left">Weekly Views</th>
-              <th className="p-3 text-left">Today's Popups</th>
             </tr>
           </thead>
           <tbody>
@@ -138,12 +161,11 @@ export default function AdPerformanceDashboard() {
                   <td className="p-3 text-black">{data.totalViews}</td>
                   <td className="p-3 text-black">{data.todayViews}</td>
                   <td className="p-3 text-black">{data.weeklyViews}</td>
-                  <td className="p-3 text-black">{data.popupsToday}</td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="5" className="text-center font-bold p-4 text-black">
+                <td colSpan="4" className="text-center font-bold p-4 text-black">
                   No data matches your search.
                 </td>
               </tr>
@@ -167,65 +189,7 @@ export default function AdPerformanceDashboard() {
               />
             </div>
 
-            <div>
-              <label className="block text-black font-medium">Total Views</label>
-              <input 
-                type="text" 
-                value={selectedAd.totalViews} 
-                readOnly 
-                className="w-full p-3 border border-gray-400 rounded mt-2 bg-gray-100 text-black" 
-              />
-            </div>
-
-            <div>
-              <label className="block text-black font-medium">Today's Views</label>
-              <input 
-                type="text" 
-                value={selectedAd.todayViews} 
-                readOnly 
-                className="w-full p-3 border border-gray-400 rounded mt-2 bg-gray-100 text-black" 
-              />
-            </div>
-
-            <div>
-              <label className="block text-black font-medium">Weekly Views</label>
-              <input 
-                type="text" 
-                value={selectedAd.weeklyViews} 
-                readOnly 
-                className="w-full p-3 border border-gray-400 rounded mt-2 bg-gray-100 text-black" 
-              />
-            </div>
-
-            <div>
-              <label className="block text-black font-medium">Today's Popups</label>
-              <input 
-                type="text" 
-                value={selectedAd.popupsToday} 
-                readOnly 
-                className="w-full p-3 border border-gray-400 rounded mt-2 bg-gray-100 text-black" 
-              />
-            </div>
-
-            <div>
-              <label className="block text-black font-medium">Weekly Popups</label>
-              <input 
-                type="text" 
-                value={selectedAd.popupsWeekly} 
-                readOnly 
-                className="w-full p-3 border border-gray-400 rounded mt-2 bg-gray-100 text-black" 
-              />
-            </div>
-
-            <div>
-              <label className="block text-black font-medium">Last Updated</label>
-              <input 
-                type="text" 
-                value={selectedAd.lastUpdated} 
-                readOnly 
-                className="w-full p-3 border border-gray-400 rounded mt-2 bg-gray-100 text-black" 
-              />
-            </div>
+            {/* More input fields for views, etc. */}
 
             {/* Video Analytics Section */}
             {deviceVideoUrl && (
